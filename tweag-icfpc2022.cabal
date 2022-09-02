@@ -33,6 +33,7 @@ executable tweag-icfpc2022
     -- other-extensions:
     build-depends:
         base,
+        vector,
         JuicyPixels
 
     hs-source-dirs:   app

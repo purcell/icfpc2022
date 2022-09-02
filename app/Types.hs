@@ -1,10 +1,11 @@
 module Types where
 
-import Codec.Picture (PixelRGBA8)
+import Codec.Picture (PixelRGBA8, Image)
 
 type BlockId = [Int]
 type Point = (Int, Int)
 type RGBA = PixelRGBA8
+type Img = Image PixelRGBA8
 
 data Orientation = X | Y
   deriving (Show, Eq, Ord)
