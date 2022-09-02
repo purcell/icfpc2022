@@ -10,13 +10,14 @@ import Lens.Micro (over)
 import Lens.Micro.Internal (foldMapOf)
 
 import Types ( ISLLine(Color) )
+import Cost (cost)
 import ISL (serialize)
 
 main :: IO ()
-main = for_ [1..10] $ \i -> do
+main = for_ [1..15] $ \i -> do
   img <- load i
   let prog = [Color [0] (average' img)]
-  putStr $ show i ++ ": " ++ serialize prog
+  putStr $ show i ++ " Cost: " ++ show (cost prog) ++ "\n" ++ serialize prog
 
 load :: Int -> IO (Image PixelRGBA8)
 load i = do

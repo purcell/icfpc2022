@@ -12,6 +12,29 @@ shape0 = Rect (0, 0) (400, 400)
 block0 :: Block
 block0 = SimpleBlock shape0
 
+size :: Block -> Int
+size (SimpleBlock (Rect (x0, y0) (x1, y1))) = (x1 - x0) * (y1 - y0)
+size _ = error "size called on destroyed block"
+
+baseCost :: ISLLine -> Int
+baseCost = \case
+  LineCut{} -> 7
+  PointCut{} -> 10
+  Color{} -> 5
+  Swap{} -> 3
+  Merge{} -> 1
+
+lineCost :: ISLLine -> Block -> Integer
+lineCost move block = round (fromIntegral (baseCost move * size block0) / fromIntegral (size block) :: Double)
+
+cost :: ISL -> Integer
+cost = snd . foldr f ([block0], 0)
+  where
+    f move (blocks, c) =
+      ( blockEffect move blocks
+      , c + lineCost move (targetBlock move blocks)
+      )
+
 -- >>> lookupBlock [0] [block0]
 -- SimpleBlock (Rect {bl = (0,0), tr = (400,400)})
 lookupBlock :: BlockId -> [Block] -> Block
@@ -25,6 +48,14 @@ blockAt [i] f bs = ix i f bs
 blockAt (i:id) f bs = ix i f' bs
   where
     f' (ComplexBlock bs') = ComplexBlock <$> blockAt id f bs'
+
+targetBlock :: ISLLine -> [Block] -> Block
+targetBlock = lookupBlock . \case
+  LineCut b o l -> b
+  PointCut b p -> b
+  Color b c -> b
+  Swap b0 b1 -> b0
+  Merge b0 b1 -> b0 -- ? TODO
 
 blockEffect :: ISLLine -> [Block] -> [Block]
 blockEffect = \case
@@ -49,9 +80,9 @@ pointCut :: Point -> Block -> Block
 pointCut (x, y) (SimpleBlock (Rect (x0, y0) (x1, y1))) =
   ComplexBlock
     [ SimpleBlock (Rect (x0, y0) (x, y))
-    , SimpleBlock (Rect (x0, y) (x, y1))
-    , SimpleBlock (Rect (x, y) (x1, y1))
     , SimpleBlock (Rect (x, y0) (x1, y))
+    , SimpleBlock (Rect (x, y) (x1, y1))
+    , SimpleBlock (Rect (x0, y) (x, y1))
     ]
 pointCut _ (ComplexBlock _) = error "pointCut: unexpected complex block"
 
