@@ -18,7 +18,7 @@ main = for_ [1..15] $ \i -> do
   img <- load i
   let prog = [Color [0] (average img)]
   img' <- draw prog
-  save i img'
+  save i prog img'
   putStr $ show i ++ " Cost: " ++ show (cost prog + similarity img img') ++ "\n" ++ serialize prog
 
 load :: Int -> IO Img
@@ -26,8 +26,10 @@ load i = do
   res <- readImage ("problems/" ++ show i ++ ".png")
   either error (pure . convertRGBA8) res
 
-save :: Int -> Img -> IO ()
-save i = writePng ("solutions/" ++ show i ++ ".png")
+save :: Int -> ISL -> Img -> IO ()
+save i isl img = do
+  writeFile ("solutions/" ++ show i ++ ".isl") (serialize isl)
+  writePng ("solutions/" ++ show i ++ ".png") img
 
 average :: Img -> RGBA
 average = avg . foldMapOf imagePixels (\(PixelRGBA8 r g b a) -> ((s r, s g, s b, s a), Sum 1))
