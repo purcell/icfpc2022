@@ -3,7 +3,9 @@ module ISL where
 
 import Types
 import Data.List (intercalate)
-import Codec.Picture (PixelRGBA8(PixelRGBA8))
+import Codec.Picture (PixelRGBA8(PixelRGBA8), imageData)
+import qualified Data.Vector.Storable as V
+import Data.Word (Word8)
 
 testISL :: ISL
 testISL = [LineCut [0] X 20, Color [0,0] (PixelRGBA8 255 255 255 255), PointCut [0,1] (30,40)]
@@ -38,3 +40,9 @@ serializeOrientation = bracket . show
 
 bracket :: String -> String
 bracket s = "[" ++ s ++ "]"
+
+similarity :: Img -> Img -> Float
+similarity a b = (0.05 *) . sqrt . V.sum $ V.zipWith componentDifference (imageData a) (imageData b)
+  where
+    componentDifference :: Word8 -> Word8 -> Float
+    componentDifference c c' = (fromIntegral c - fromIntegral c') ** 2

@@ -35,7 +35,8 @@ executable tweag-icfpc2022
     build-depends:
         base,
         JuicyPixels,
-        microlens
+        microlens,
+        vector,
 
     hs-source-dirs:   app
     default-language: Haskell2010
