@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeApplications #-}
 module Main where
 
-import Codec.Picture (readImage, Image, PixelRGBA8 (PixelRGBA8), convertRGBA8, imagePixels, pixelAt, palettize, PaletteOptions (..), PaletteCreationMethod (..), PixelRGB8 (PixelRGB8))
+import Codec.Picture (readImage, Image, PixelRGBA8 (PixelRGBA8), convertRGBA8, imagePixels, pixelAt, palettize, PaletteOptions (..), PaletteCreationMethod (..), PixelRGB8 (PixelRGB8), writePng)
 import Codec.Picture.Types (promotePixel, promoteImage)
 import Control.Applicative (Const(..))
 import Data.Foldable ( for_ )
@@ -12,17 +12,23 @@ import Lens.Micro.Internal (foldMapOf)
 import Types ( ISLLine(Color) )
 import Cost (cost)
 import ISL (serialize)
+import Draw (draw)
 
 main :: IO ()
 main = for_ [1..15] $ \i -> do
   img <- load i
   let prog = [Color [0] (average' img)]
+  img' <- draw prog
+  save i img'
   putStr $ show i ++ " Cost: " ++ show (cost prog) ++ "\n" ++ serialize prog
 
 load :: Int -> IO (Image PixelRGBA8)
 load i = do
   res <- readImage ("problems/" ++ show i ++ ".png")
   either error (pure . convertRGBA8) res
+
+save :: Int -> Image PixelRGBA8 -> IO ()
+save i = writePng ("solutions/" ++ show i ++ ".png")
 
 average :: Image PixelRGBA8 -> PixelRGBA8
 average = avg . foldMapOf imagePixels (\(PixelRGBA8 r g b a) -> ((s r, s g, s b, s a), Sum 1))
