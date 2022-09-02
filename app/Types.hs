@@ -1,9 +1,10 @@
 module Types where
-import Data.Word (Word8)
+
+import Codec.Picture (PixelRGBA8)
 
 type BlockId = [Int]
 type Point = (Int, Int)
-type RGBA = (Word8, Word8, Word8, Word8)
+type RGBA = PixelRGBA8
 
 data Orientation = X | Y
   deriving (Show, Eq, Ord)

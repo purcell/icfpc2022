@@ -31,6 +31,9 @@ executable tweag-icfpc2022
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
-    build-depends:    base
+    build-depends:
+        base,
+        JuicyPixels
+
     hs-source-dirs:   app
     default-language: Haskell2010

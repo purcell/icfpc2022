@@ -3,9 +3,10 @@ module ISL where
 
 import Types
 import Data.List (intercalate)
+import Codec.Picture (PixelRGBA8(PixelRGBA8))
 
 testISL :: ISL
-testISL = [LineCut [0] X 20, Color [0,0] (255,255,255,255), PointCut [0,1] (30,40)]
+testISL = [LineCut [0] X 20, Color [0,0] (PixelRGBA8 255 255 255 255), PointCut [0,1] (30,40)]
 
 -- >>> serialize testISL
 -- "cut[0][X][20]\ncolor[0.0][255,255,255,255]\ncut[0.1][30,40]\n"
@@ -30,7 +31,7 @@ serializePoint :: Point -> String
 serializePoint (x, y) = "[" ++ show x ++ "," ++ show y ++ "]"
 
 serializeColor :: RGBA -> String
-serializeColor (r, g, b, a) = "[" ++ show r ++ "," ++ show g ++ "," ++ show b ++ "," ++ show a ++ "]"
+serializeColor (PixelRGBA8 r g b a) = "[" ++ show r ++ "," ++ show g ++ "," ++ show b ++ "," ++ show a ++ "]"
 
 serializeOrientation :: Orientation -> String
 serializeOrientation = bracket . show
