@@ -42,7 +42,10 @@ bracket :: String -> String
 bracket s = "[" ++ s ++ "]"
 
 similarity :: Img -> Img -> Float
-similarity a b = (0.05 *) . sqrt . V.sum $ V.zipWith componentDifference (imageData a) (imageData b)
+similarity a b = 0.05 * go 0 componentDiffs
   where
+    go total v | V.length v == 0 = total
+    go total v = go (total + sqrt (V.sum (V.take 3 v))) (V.drop 3 v)
+    componentDiffs = V.zipWith componentDifference (imageData a) (imageData b)
     componentDifference :: Word8 -> Word8 -> Float
     componentDifference c c' = (fromIntegral c - fromIntegral c') ** 2
