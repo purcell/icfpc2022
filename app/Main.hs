@@ -1,4 +1,5 @@
 module Main where
+import ISL (serialize, testISL)
 
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = putStrLn $ serialize testISL

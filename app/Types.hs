@@ -8,7 +8,9 @@ type RGBA = (Word8, Word8, Word8, Word8)
 data Orientation = X | Y
   deriving (Show, Eq, Ord)
 
-data ISL
+type ISL = [ISLLine]
+
+data ISLLine
   = LineCut BlockId Orientation Int
   | PointCut BlockId Point
   | Color BlockId RGBA
