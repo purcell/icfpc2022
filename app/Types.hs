@@ -18,3 +18,10 @@ data ISLLine
   | Swap BlockId BlockId
   | Merge BlockId BlockId
   deriving (Show, Eq, Ord)
+
+data Shape = Rect { bl :: Point, tr :: Point }
+  deriving (Show, Eq, Ord)
+data Block
+  = SimpleBlock Shape
+  | ComplexBlock [Block]
+  deriving (Show, Eq, Ord)
