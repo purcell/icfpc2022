@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeApplications #-}
 module Main where
 
-import Codec.Picture (readImage, convertRGBA8, imagePixels, pixelAt, palettize, PaletteOptions (..), PaletteCreationMethod (..), PixelRGB8 (PixelRGB8), writePng)
+import Codec.Picture (readImage, convertRGBA8, imagePixels, pixelAt, palettize, PaletteOptions (..), PaletteCreationMethod (..), writePng)
 import Codec.Picture.Types (promotePixel, dropTransparency)
 import Data.Foldable ( for_ )
 import Data.Monoid (Sum(..))
@@ -15,12 +15,13 @@ import Draw (draw)
 import qualified Quads
 
 main :: IO ()
-main = for_ [1..15] $ \i -> do
+main = for_ [1..20] $ \i -> do
   img <- load i
   let prog = Quads.toISL [0] $ Quads.fromImage img
+  -- let prog = [Color [0] (average img)]
   img' <- draw prog
   save i prog img'
-  putStr $ show i ++ " Cost: " ++ show (cost prog + similarity img img') ++ "\n" ++ serialize prog
+  putStrLn $ show i ++ " Cost: " ++ show (cost prog + similarity img img') -- ++ "\n" ++ serialize prog
 
 load :: Int -> IO Img
 load i = do
@@ -42,7 +43,7 @@ average = avg . foldMapOf imagePixels (\(PixelRGBA8 r g b a) -> ((s r, s g, s b,
 average' :: Img -> RGBA
 average' img
   = promotePixel
-  $ pixelAt (snd $ palettize (PaletteOptions MedianMeanCut False 1)
+  $ Codec.Picture.pixelAt (snd $ palettize (PaletteOptions MedianMeanCut False 1)
   $ over imagePixels dropTransparency img) 0 0
 
 average'' :: Img -> RGBA

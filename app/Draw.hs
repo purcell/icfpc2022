@@ -18,4 +18,4 @@ draw isl =
       pure (blockEffect move blocks)
     drawOne (Color b c) blocks img = color (lookupBlock b blocks) c img
     drawOne _ _ _ = pure ()
-    color (SimpleBlock (Rect (x0, y0) (x1, y1))) c img = fillRectangle img x0 y0 (x1 - 1) (y1 - 1) c
+    color (SimpleBlock (Rect (x0, y0) (x1, y1))) c img = fillRectangle img x0 (400 - y1) (x1 - 1) (399 - y0) c

@@ -6,7 +6,7 @@ import Types
 import Lens.Micro (Traversal', ix, over)
 
 shape0 :: Shape
-shape0 = Rect (0, 0) (399, 399)
+shape0 = Rect (0, 0) (400, 400)
 
 block0 :: Block
 block0 = SimpleBlock shape0
@@ -34,7 +34,7 @@ blockEffect = \case
   Merge b0 b1 -> \blocks -> blocks ++ [merge (lookupBlock b0 blocks) (lookupBlock b1 blocks)]
 
 -- >>> lookupBlock [0,1] [lineCut X 100 block0]
--- SimpleBlock (Rect {bl = (100,0), tr = (399,399)})
+-- SimpleBlock (Rect {bl = (100,0), tr = (400,400)})
 lineCut :: Orientation -> Int -> Block -> Block
 lineCut X x (SimpleBlock (Rect (x0, y0) (x1, y1))) =
   ComplexBlock [SimpleBlock (Rect (x0, y0) (x, y1)), SimpleBlock (Rect (x, y0) (x1, y1))]
@@ -43,7 +43,7 @@ lineCut Y y (SimpleBlock (Rect (x0, y0) (x1, y1))) =
 lineCut _ _ (ComplexBlock _) = error "lineCut: unexpected complex block"
 
 -- >>> lookupBlock [0,1] [pointCut (100, 200) block0]
--- SimpleBlock (Rect {bl = (100,0), tr = (399,200)})
+-- SimpleBlock (Rect {bl = (100,0), tr = (400,200)})
 pointCut :: Point -> Block -> Block
 pointCut (x, y) (SimpleBlock (Rect (x0, y0) (x1, y1))) =
   ComplexBlock
