@@ -5,7 +5,7 @@
                 else builtins.currentSystem; } }:
 
 let
-  ghc = pkgs.ghc.withPackages (p: with p; [ JuicyPixels ]);
+  ghc = pkgs.ghc.withPackages (p: with p; [ JuicyPixels microlens ]);
 in
 pkgs.mkShell {
 
