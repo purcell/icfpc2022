@@ -30,6 +30,7 @@ executable tweag-icfpc2022
         Cost
         Draw
         ISL
+        Quads
         Types
 
     -- LANGUAGE extensions used by modules in this package.

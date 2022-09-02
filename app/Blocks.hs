@@ -12,7 +12,7 @@ block0 :: Block
 block0 = SimpleBlock shape0
 
 -- >>> lookupBlock [0] [block0]
--- SimpleBlock (Rect {bl = (0,0), tr = (399,399)})
+-- SimpleBlock (Rect {bl = (0,0), tr = (400,400)})
 lookupBlock :: BlockId -> [Block] -> Block
 lookupBlock [] _ = error "unexpected empty block id"
 lookupBlock (i:blockId) bs = case (bs !! i, blockId) of

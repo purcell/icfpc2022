@@ -7,6 +7,7 @@ import qualified Data.Vector.Storable as V
 import Types
 import Blocks
 import Codec.Picture (imageData)
+import Data.Foldable (foldl')
 
 size :: Block -> Int
 size (SimpleBlock (Rect (x0, y0) (x1, y1))) = (x1 - x0) * (y1 - y0)
@@ -24,9 +25,9 @@ lineCost :: ISLLine -> Int -> Integer
 lineCost move blockSize = round (fromIntegral (baseCost move * size block0) / fromIntegral blockSize :: Double)
 
 cost :: ISL -> Integer
-cost = snd . foldr f ([block0], 0)
+cost = snd . foldl' f ([block0], 0)
   where
-    f move (blocks, c) =
+    f (blocks, c) move =
       ( blockEffect move blocks
       , c + lineCost move (targetSize move blocks)
       )
