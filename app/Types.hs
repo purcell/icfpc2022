@@ -1,6 +1,11 @@
-module Types where
+module Types (
+    module Types
+  , PixelRGBA8(..)
+  , Word8
+ ) where
 
-import Codec.Picture (PixelRGBA8, Image)
+import Codec.Picture (PixelRGBA8(..), Image)
+import Data.Word (Word8)
 
 type BlockId = [Int]
 type Point = (Int, Int)

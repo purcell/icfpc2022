@@ -2,10 +2,11 @@
 {-# LANGUAGE RankNTypes #-}
 module Cost where
 
-import Lens.Micro (Traversal', ix, over)
+import qualified Data.Vector.Storable as V
 
 import Types
 import Blocks
+import Codec.Picture (imageData)
 
 size :: Block -> Int
 size (SimpleBlock (Rect (x0, y0) (x1, y1))) = (x1 - x0) * (y1 - y0)
@@ -19,21 +20,32 @@ baseCost = \case
   Swap{} -> 3
   Merge{} -> 1
 
-lineCost :: ISLLine -> Block -> Integer
-lineCost move block = round (fromIntegral (baseCost move * size block0) / fromIntegral (size block) :: Double)
+lineCost :: ISLLine -> Int -> Integer
+lineCost move blockSize = round (fromIntegral (baseCost move * size block0) / fromIntegral blockSize :: Double)
 
 cost :: ISL -> Integer
 cost = snd . foldr f ([block0], 0)
   where
     f move (blocks, c) =
       ( blockEffect move blocks
-      , c + lineCost move (targetBlock move blocks)
+      , c + lineCost move (targetSize move blocks)
       )
 
-targetBlock :: ISLLine -> [Block] -> Block
-targetBlock = lookupBlock . \case
-  LineCut b o l -> b
-  PointCut b p -> b
-  Color b c -> b
-  Swap b0 b1 -> b0
-  Merge b0 b1 -> b0 -- ? TODO
+targetSize :: ISLLine -> [Block] -> Int
+targetSize isl blocks = case isl of
+  LineCut b o l -> f b
+  PointCut b p -> f b
+  Color b c -> f b
+  Swap b0 b1 -> f b0
+  Merge b0 b1 -> max (f b0) (f b1)
+  where
+    f = size . flip lookupBlock blocks
+
+similarity :: Img -> Img -> Integer
+similarity a b = round $ 0.005 * go 0 componentDiffs
+  where
+    go total v | V.length v == 0 = total
+    go total v = go (total + sqrt (V.sum (V.take 4 v))) (V.drop 4 v)
+    componentDiffs = V.zipWith componentDifference (imageData a) (imageData b)
+    componentDifference :: Word8 -> Word8 -> Float
+    componentDifference c c' = (fromIntegral c - fromIntegral c') ** 2
