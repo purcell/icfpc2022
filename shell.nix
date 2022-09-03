@@ -9,6 +9,6 @@ let
 in
 pkgs.mkShell {
 
-  buildInputs = [ ghc pkgs.cabal-install pkgs.haskell-language-server ];
+  buildInputs = [ ghc ] ++ (with pkgs; [ cabal-install haskell-language-server curl jq ]);
 
 }
