@@ -4,9 +4,20 @@
   "blocks": [
     {
       "blockId": "0",
-      "bottomLeft": [0, 0],
-      "topRight": [0, 0],
-      "color": [255, 255, 255, 255]
+      "bottomLeft": [
+        0,
+        0
+      ],
+      "topRight": [
+        400,
+        400
+      ],
+      "color": [
+        255,
+        255,
+        255,
+        255
+      ]
     }
   ]
 }
