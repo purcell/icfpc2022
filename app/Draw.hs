@@ -3,7 +3,7 @@ module Draw where
 
 import Blocks
 import Types
-import Codec.Picture.Types (createMutableImage, freezeImage, writePixel, readPixel)
+import Codec.Picture.Types (writePixel, readPixel)
 import Codec.Picture.Drawing (fillRectangle, withMutableImage)
 import Data.Foldable (foldlM, for_)
 import Data.Functor (void)

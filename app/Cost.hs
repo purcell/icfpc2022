@@ -46,10 +46,10 @@ cost = snd . foldl' f (blocks0, 0)
 
 targetSize :: ISLLine -> Blocks -> Int
 targetSize isl blocks = case isl of
-  LineCut b o l -> f b
-  PointCut b p -> f b
-  Color b c -> f b
-  Swap b0 b1 -> f b0
+  LineCut b _ _ -> f b
+  PointCut b _ -> f b
+  Color b _ -> f b
+  Swap b0 _ -> f b0
   Merge b0 b1 -> max (f b0) (f b1)
   where
     f = size . flip lookupBlock blocks

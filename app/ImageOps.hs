@@ -1,6 +1,6 @@
 module ImageOps where
 
-import Codec.Picture (convertRGBA8, imagePixels, pixelAt, palettize, PaletteOptions (..), PaletteCreationMethod (..), PixelRGB8 (PixelRGB8), generateImage, imageWidth, imageHeight, mixWith)
+import Codec.Picture (imagePixels, pixelAt, palettize, PaletteOptions (..), PaletteCreationMethod (..), generateImage, imageWidth, imageHeight, mixWith)
 import Codec.Picture.Types (promotePixel, dropTransparency)
 import Data.Monoid (Sum(..))
 import Lens.Micro (over)

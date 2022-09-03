@@ -11,9 +11,7 @@ import qualified Codec.Picture (pixelAt)
 import Data.Word (Word8)
 import Data.Map.Strict (Map)
 import Data.Aeson
-import qualified Data.Map as M
-import Data.List (sortBy, singleton)
-import Data.Ord (comparing)
+import Data.List (singleton)
 
 type BlockId = [Int]
 type Point = (Int, Int)

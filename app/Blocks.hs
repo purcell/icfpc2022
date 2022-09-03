@@ -16,38 +16,38 @@ blocks0 = (1, Map.singleton [0] block0)
 -- >>> lookupBlock [0] blocks0
 -- SimpleBlock (Rect {bl = (0,0), tr = (400,400)})
 lookupBlock :: BlockId -> Blocks -> Block
-lookupBlock id = (Map.! id) . snd
+lookupBlock bid = (Map.! bid) . snd
 
 blockAt :: BlockId -> Traversal' Blocks Block
-blockAt id = _2 . ix id
+blockAt bid = _2 . ix bid
 
 destroy :: BlockId -> Blocks -> Blocks
-destroy id = (_2 . at id) .~ Nothing
+destroy bid = (_2 . at bid) .~ Nothing
 
 append :: Block -> Blocks -> Blocks
 append b (n, m) = (n + 1, Map.insert [n] b m)
 
 replace :: BlockId -> (Block -> [Block]) -> Blocks -> Blocks
-replace id f blocks =
-  destroy id
-  $ flip (foldr (\(i, b) -> over _2 (Map.insert (id ++ [i]) b))) (zip [0..] (f $ lookupBlock id blocks))
+replace bid f blocks =
+  destroy bid
+  $ flip (foldr (\(i, b) -> over _2 (Map.insert (bid ++ [i]) b))) (zip [0..] (f $ lookupBlock bid blocks))
   $ blocks
 
 blockEffect :: ISLLine -> Blocks -> Blocks
 blockEffect = \case
   LineCut b o l -> replace b (lineCut o l)
   PointCut b p -> replace b (pointCut p)
-  Color b c -> id
-  Swap b0 b1 -> swap b0 b1
+  Color _ _ -> id
+  Swap b0 b1 -> swapBlocks b0 b1
   Merge b0 b1 -> \blocks -> destroy b0 . destroy b1 . append (merge (lookupBlock b0 blocks) (lookupBlock b1 blocks)) $ blocks
 
 -- >>> swap [0,0] [0,1] [lineCut X 100 block0]
 -- [ComplexBlock [SimpleBlock (Rect {bl = (100,0), tr = (400,400)}),SimpleBlock (Rect {bl = (0,0), tr = (100,400)})]]
-swap :: BlockId -> BlockId -> Blocks -> Blocks
-swap b0 b1 blocks =
-  let block0 = lookupBlock b0 blocks
-      block1 = lookupBlock b1 blocks
-  in blocks & blockAt b0 .~ block1 & blockAt b1 .~ block0
+swapBlocks :: BlockId -> BlockId -> Blocks -> Blocks
+swapBlocks a b blocks =
+  let blockA = lookupBlock a blocks
+      blockB = lookupBlock b blocks
+  in blocks & blockAt a .~ blockB & blockAt b .~ blockA
 
 -- >>> lookupBlock [0,1] [lineCut X 100 block0]
 -- SimpleBlock (Rect {bl = (100,0), tr = (400,400)})

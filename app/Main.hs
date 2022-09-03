@@ -1,12 +1,8 @@
 module Main where
 
-import Codec.Picture (readImage, convertRGBA8, imagePixels, pixelAt, palettize, PaletteOptions (..), PaletteCreationMethod (..), writePng)
-import Codec.Picture.Types (promotePixel, dropTransparency)
+import Codec.Picture (readImage, convertRGBA8, writePng)
 import Data.Foldable ( for_ )
 import Data.Maybe (fromMaybe)
-import Data.Monoid (Sum(..))
-import Lens.Micro (over)
-import Lens.Micro.Internal (foldMapOf)
 
 import Types
 import Cost (cost, similarity)
