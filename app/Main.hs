@@ -15,7 +15,7 @@ import Draw (draw)
 import qualified Quads
 
 main :: IO ()
-main = for_ [1..15] $ \i -> do
+main = for_ [1..25] $ \i -> do
   img <- load i
   let prog = Quads.toISL [0] $ Quads.fromImage img
   img' <- draw prog
