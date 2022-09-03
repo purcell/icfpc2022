@@ -1,6 +1,6 @@
 module ImageOps where
 
-import Codec.Picture (convertRGBA8, imagePixels, pixelAt, palettize, PaletteOptions (..), PaletteCreationMethod (..), PixelRGB8 (PixelRGB8), generateImage, imageWidth, imageHeight)
+import Codec.Picture (convertRGBA8, imagePixels, pixelAt, palettize, PaletteOptions (..), PaletteCreationMethod (..), PixelRGB8 (PixelRGB8), generateImage, imageWidth, imageHeight, mixWith)
 import Codec.Picture.Types (promotePixel, dropTransparency)
 import Data.Monoid (Sum(..))
 import Lens.Micro (over)
@@ -20,6 +20,9 @@ averageColour' img
   = promotePixel
   $ pixelAt (snd $ palettize (PaletteOptions MedianMeanCut False 1)
   $ over imagePixels dropTransparency img) 0 0
+
+avg2 :: RGBA -> RGBA -> RGBA
+avg2 = mixWith (\_ ca cb -> fromIntegral $ (fromIntegral ca + fromIntegral cb :: Int) `div` 2)
 
 region :: Img -> Point -> Point -> Img
 region i (x0,y0) (x1,y1) = generateImage (\x y -> pixelAt i (x + x0) (399 - (y + y0))) (x1 - x0) (y1 - y0)

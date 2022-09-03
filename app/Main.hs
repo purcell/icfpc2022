@@ -19,7 +19,7 @@ main :: IO ()
 main = for_ [1..25] $ \i -> do
   img <- load i
   let man = lookup i manually
-  let prog = fromMaybe (Quads.toISL [0] $ Quads.fromImage img) man
+  let prog = fromMaybe (Quads.fromImage img) man
   -- let prog = [Color [0] (average img)]
   img' <- draw prog
   let cScore = cost prog
