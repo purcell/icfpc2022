@@ -38,7 +38,7 @@ type Blocks = (Int, Map BlockId Block)
 
 ----------------------------------------------------------------------
 
-data InitialBlock = InitialBlock { iblockBL :: Point
+data InitialBlock = InitialBlock { iBlockBL :: Point
                                  , iBlockTR :: Point
                                  , iBlockID :: BlockId
                                  , iBlockColor :: RGBA }

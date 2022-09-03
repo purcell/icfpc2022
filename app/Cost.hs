@@ -8,13 +8,7 @@ import Types
 import Blocks
 import Codec.Picture (imageData, imageWidth, imageHeight)
 import Data.Foldable (foldl')
-import ImageOps (averageColour, filledWith)
-
-size :: Block -> Int
-size (Rect (x0, y0) (x1, y1)) = (x1 - x0) * (y1 - y0)
-
-imgSize :: Img -> Int
-imgSize img = imageWidth img * imageHeight img
+import ImageOps (averageColour, filledWith, imgSize)
 
 point_cut_cost :: Int
 point_cut_cost = 10
@@ -30,18 +24,20 @@ baseCost = \case
   Swap{} -> 3
   Merge{} -> 1
 
-lineCost :: ISLLine -> Int -> Integer
-lineCost move blockSize = round (fromIntegral (baseCost move * size block0) / fromIntegral blockSize :: Double)
+lineCost :: Block -> ISLLine -> Int -> Integer
+lineCost block0 move targetSize = round (fromIntegral (baseCost move * blockArea block0) / fromIntegral targetSize :: Double)
 
 imgLineCost :: Img -> Img -> Int -> Integer
 imgLineCost whole region base = round (fromIntegral (base * imgSize whole) / fromIntegral (imgSize region) :: Double)
 
-cost :: ISL -> Integer
-cost = snd . foldl' f (blocks0, 0)
+cost :: Blocks -> ISL -> Integer
+cost initialBlocks = snd . foldl' f (initialBlocks, 0)
   where
+    -- TODO: might we ever remove block0??
+    block0 = lookupBlock [0] initialBlocks
     f (blocks, c) move =
       ( blockEffect move blocks
-      , c + lineCost move (targetSize move blocks)
+      , c + lineCost block0 move (targetSize move blocks)
       )
 
 targetSize :: ISLLine -> Blocks -> Int
@@ -52,7 +48,7 @@ targetSize isl blocks = case isl of
   Swap b0 _ -> f b0
   Merge b0 b1 -> max (f b0) (f b1)
   where
-    f = size . flip lookupBlock blocks
+    f = blockArea . flip lookupBlock blocks
 
 similarity :: Img -> Img -> Integer
 similarity a b = round $ 0.005 * go 0 componentDiffs

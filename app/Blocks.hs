@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 module Blocks where
@@ -6,17 +7,27 @@ import Types
 import Lens.Micro (Traversal', ix, over, (.~), (&), _2, at)
 import Lens.Micro.GHC ()
 import qualified Data.Map.Strict as Map
+import Data.Foldable (fold)
 
-block0 :: Block
-block0 = Rect (0, 0) (400, 400)
-
-blocks0 :: Blocks
-blocks0 = (1, Map.singleton [0] block0)
+fromInitialLayout :: InitialLayout -> Blocks
+fromInitialLayout InitialLayout{layoutW,layoutH,layoutBlocks} =
+  (length layoutBlocks,
+   Map.fromList ((\(InitialBlock{iBlockBL,iBlockTR,iBlockID,iBlockColor}) ->
+                   (iBlockID, (Rect iBlockBL iBlockTR))) <$> layoutBlocks))
 
 -- >>> lookupBlock [0] blocks0
 -- SimpleBlock (Rect {bl = (0,0), tr = (400,400)})
 lookupBlock :: BlockId -> Blocks -> Block
 lookupBlock bid = (Map.! bid) . snd
+
+blockArea :: Block -> Int
+blockArea b = blockHeight b * blockWidth b
+
+blockWidth :: Block -> Int
+blockWidth (Rect (x0, _) (x1, _)) = x1 - x0
+
+blockHeight :: Block -> Int
+blockHeight (Rect (_, y0) (_, y1)) = y1 - y0
 
 blockAt :: BlockId -> Traversal' Blocks Block
 blockAt bid = _2 . ix bid

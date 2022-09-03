@@ -29,3 +29,6 @@ region i (x0,y0) (x1,y1) = generateImage (\x y -> pixelAt i (x + x0) (399 - (y +
 
 filledWith :: Img -> RGBA -> Img
 filledWith img colour = generateImage (\_ _ -> colour) (imageWidth img) (imageHeight img)
+
+imgSize :: Img -> Int
+imgSize img = imageHeight img * imageWidth img

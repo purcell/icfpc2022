@@ -2,7 +2,10 @@ module Main where
 
 import Codec.Picture (readImage, convertRGBA8, writePng)
 import Data.Foldable ( for_ )
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, fromJust)
+import Data.Monoid (Sum(..))
+import Lens.Micro (over)
+import Lens.Micro.Internal (foldMapOf)
 
 import Types
 import Cost (cost, similarity)
@@ -10,21 +13,28 @@ import ISL (serialize)
 import Draw (draw)
 import Manually (manually)
 import qualified Quads
+import Data.Aeson (decodeFileStrict)
+import Blocks
 
 main :: IO ()
 main = for_ [1..25] $ \i -> do
-  img <- load i
+  layout <- loadLayout i
+  img <- loadPng i
   let man = lookup i manually
   let prog = fromMaybe (Quads.fromImage img) man
   -- let prog = [Color [0] (average img)]
-  img' <- draw prog
-  let cScore = cost prog
+  let startingBlocks = fromInitialLayout layout
+  img' <- draw startingBlocks prog
+  let cScore = cost startingBlocks prog
   let sScore = similarity img img'
   save i cScore sScore prog img'
   putStr $ show i ++ " Cost: " ++ show (cScore + sScore, cScore, sScore) ++ "\n" -- ++ serialize prog
 
-load :: Int -> IO Img
-load i = do
+loadLayout :: Int -> IO InitialLayout
+loadLayout i = fromJust <$> decodeFileStrict ("problems/" ++ show i ++ ".json")
+
+loadPng :: Int -> IO Img
+loadPng i = do
   res <- readImage ("problems/" ++ show i ++ ".png")
   either error (pure . convertRGBA8) res
 
