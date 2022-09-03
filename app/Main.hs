@@ -15,9 +15,17 @@ import Manually (manually)
 import qualified Quads
 import Data.Aeson (decodeFileStrict)
 import Blocks
+import System.Environment (getArgs)
+
+problemNumbersToSolve :: IO [Int]
+problemNumbersToSolve = do
+  ns <- fmap read <$> getArgs
+  pure $ case ns of
+    [] -> [1..30] -- TODO: look in solutions dir
+    _ -> ns
 
 main :: IO ()
-main = for_ [1..30] $ \i -> do
+main = problemNumbersToSolve >>= \ns -> for_ ns $ \i -> do
   layout <- loadLayout i
   img <- loadPng i
   let man = lookup i manually
