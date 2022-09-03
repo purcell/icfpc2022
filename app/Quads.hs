@@ -5,6 +5,7 @@ module Quads where
 import Types hiding (bl, tr)
 import Codec.Picture (mixWith, imageWidth, imageHeight, generateImage)
 import ImageOps
+import Cost (componentDifference)
 
 data Quad
   = Leaf
@@ -21,8 +22,11 @@ data Quad
     , size :: !Int
     }
 
+avg2 :: RGBA -> RGBA -> RGBA
+avg2 = mixWith (\_ ca cb -> fromIntegral $ (fromIntegral ca + fromIntegral cb :: Int) `div` 2)
+
 mkLeaf2 :: RGBA -> RGBA -> Quad
-mkLeaf2 a b = Leaf (mixWith (\_ ca cb -> fromIntegral $ (fromIntegral ca + fromIntegral cb :: Int) `div` 2) a b) 2
+mkLeaf2 a b = Leaf (avg2 a b) 2
 
 mkQuad :: Point -> RGBA -> Quad -> Quad -> Quad -> Quad -> Quad
 mkQuad p c bl br tr tl = Quad p c bl br tr tl (s size)
@@ -53,10 +57,20 @@ powOf2 :: Int -> Int
 powOf2 w = 2 ^ (floor (log (fromIntegral w :: Double) / log 2) :: Int)
 
 toISL :: BlockId -> Quad -> ISL
-toISL blockId q | length blockId > 2 = [Color blockId (averageColor q)]
-toISL blockId (Quad{cutPoint,bl,br,tr,tl}) =
-  [PointCut blockId cutPoint]
-  ++ toISL (blockId ++ [0]) bl
-  ++ toISL (blockId ++ [1]) br
-  ++ toISL (blockId ++ [2]) tr
-  ++ toISL (blockId ++ [3]) tl
+toISL blockId q@Quad{cutPoint,bl,br,tr,tl} =
+  if similar (length blockId) (averageColor bl) (averageColor br) (averageColor tl) (averageColor tr)
+    then
+      [Color blockId (averageColor q)]
+    else
+      [PointCut blockId cutPoint]
+      ++ toISL (blockId ++ [0]) bl
+      ++ toISL (blockId ++ [1]) br
+      ++ toISL (blockId ++ [2]) tr
+      ++ toISL (blockId ++ [3]) tl
+
+similar :: Int -> RGBA -> RGBA -> RGBA -> RGBA -> Bool
+similar f a b c d =
+  let avg = avg2 (avg2 a b) (avg2 c d)
+      diff (PixelRGBA8 r1 g1 b1 a1) (PixelRGBA8 r2 g2 b2 a2) =
+        sqrt (componentDifference r1 r2 + componentDifference g1 g2 + componentDifference b1 b2 + componentDifference a1 a2)
+  in diff avg a + diff avg b + diff avg c + diff avg d < (16 ^ f) / 20

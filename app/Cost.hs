@@ -48,5 +48,6 @@ similarity a b = round $ 0.005 * go 0 componentDiffs
     go total v | V.length v == 0 = total
     go total v = go (total + sqrt (V.sum (V.take 4 v))) (V.drop 4 v)
     componentDiffs = V.zipWith componentDifference (imageData a) (imageData b)
-    componentDifference :: Word8 -> Word8 -> Double
-    componentDifference c c' = (fromIntegral c - fromIntegral c') ** 2
+
+componentDifference :: Word8 -> Word8 -> Double
+componentDifference c c' = (fromIntegral c - fromIntegral c') ** 2
