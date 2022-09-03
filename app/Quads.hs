@@ -29,11 +29,11 @@ toISL img (x0,y0) (x1,y1) blockId =
             (trCost, trCode) = toISL img (x, y) (x1, y1) (blockId ++ [2])
             (tlCost, tlCode) = toISL img (x0, y) (x, y1) (blockId ++ [3])
             pointCutCost = imgLineCost img blockImg point_cut_cost + blCost + brCost + trCost + tlCost
-        in (pointCutCost, [PointCut blockId (x, y)] ++ blCode ++ brCode ++ trCode ++ tlCode)
+        in (pointCutCost, PointCut blockId (x, y) : blCode ++ brCode ++ trCode ++ tlCode)
         | xi <- [1..2], yi <- [1..2]
         ]
       options =
-        [ (fillCost, [Color blockId (averageColour (region img (x0,y0) (x1,y1)))]) ]
-        ++ pointCutOptions
+        (fillCost, [Color blockId (averageColour blockImg)]) :
+         pointCutOptions
   in if w < 50 || h < 50 then head options
     else minimumBy (compare `on` fst) options
