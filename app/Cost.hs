@@ -6,22 +6,35 @@ import qualified Data.Vector.Storable as V
 
 import Types
 import Blocks
-import Codec.Picture (imageData)
+import Codec.Picture (imageData, imageWidth, imageHeight)
 import Data.Foldable (foldl')
+import ImageOps (averageColour, filledWith)
 
 size :: Block -> Int
 size (Rect (x0, y0) (x1, y1)) = (x1 - x0) * (y1 - y0)
 
+imgSize :: Img -> Int
+imgSize img = imageWidth img * imageHeight img
+
+point_cut_cost :: Int
+point_cut_cost = 10
+
+color_cost :: Int
+color_cost = 5
+
 baseCost :: ISLLine -> Int
 baseCost = \case
   LineCut{} -> 7
-  PointCut{} -> 10
-  Color{} -> 5
+  PointCut{} -> point_cut_cost
+  Color{} -> color_cost
   Swap{} -> 3
   Merge{} -> 1
 
 lineCost :: ISLLine -> Int -> Integer
 lineCost move blockSize = round (fromIntegral (baseCost move * size block0) / fromIntegral blockSize :: Double)
+
+imgLineCost :: Img -> Img -> Int -> Integer
+imgLineCost whole region base = round (fromIntegral (base * imgSize whole) / fromIntegral (imgSize region) :: Double)
 
 cost :: ISL -> Integer
 cost = snd . foldl' f (blocks0, 0)
@@ -50,3 +63,6 @@ similarity a b = round $ 0.005 * go 0 componentDiffs
 
 componentDifference :: Word8 -> Word8 -> Double
 componentDifference c c' = (fromIntegral c - fromIntegral c') ** 2
+
+similarityWithAverage :: Img -> Integer
+similarityWithAverage img = similarity img (filledWith img $ averageColour img)

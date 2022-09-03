@@ -5,7 +5,8 @@ module Quads where
 import Types hiding (bl, tr)
 import Codec.Picture (mixWith, imageWidth, imageHeight, generateImage)
 import ImageOps
-import Cost (componentDifference)
+import Cost
+import Cost (point_cut_cost)
 
 fromImage :: Img -> ISL
 fromImage img = toISL img (0, 0) (imageWidth img, imageHeight img) [0]
@@ -21,9 +22,21 @@ toISL img (x0,y0) (x1,y1) blockId =
       y = y0 + h `div` 2
       bl = region img (x0, y0) (x, y)
       br = region img (x, y0) (x1, y)
-      tl = region img (x, y) (x1, y1)
-      tr = region img (x0, y) (x, y1)
-  in if similar (length blockId) (averageColour bl) (averageColour br) (averageColour tl) (averageColour tr)
+      tr = region img (x, y) (x1, y1)
+      tl = region img (x0, y) (x, y1)
+      all = region img (x0, y0) (x1, y1)
+      fillCost = similarityWithAverage all + imgLineCost img all color_cost
+      pointCutCost
+        = similarityWithAverage bl
+        + similarityWithAverage br
+        + similarityWithAverage tr
+        + similarityWithAverage tl
+        + imgLineCost img all point_cut_cost
+        + imgLineCost img bl color_cost
+        + imgLineCost img br color_cost
+        + imgLineCost img tr color_cost
+        + imgLineCost img tl color_cost
+  in if fillCost < pointCutCost
     then
       [Color blockId (averageColour (region img (x0,y0) (x1,y1)))]
     else
@@ -32,10 +45,3 @@ toISL img (x0,y0) (x1,y1) blockId =
       ++ toISL img (x, y0) (x1, y) (blockId ++ [1])
       ++ toISL img (x, y) (x1, y1) (blockId ++ [2])
       ++ toISL img (x0, y) (x, y1) (blockId ++ [3])
-
-similar :: Int -> RGBA -> RGBA -> RGBA -> RGBA -> Bool
-similar f a b c d =
-  let avg = avg2 (avg2 a b) (avg2 c d)
-      diff (PixelRGBA8 r1 g1 b1 a1) (PixelRGBA8 r2 g2 b2 a2) =
-        sqrt (componentDifference r1 r2 + componentDifference g1 g2 + componentDifference b1 b2 + componentDifference a1 a2)
-  in diff avg a + diff avg b + diff avg c + diff avg d < (16 ^ f) / 20
