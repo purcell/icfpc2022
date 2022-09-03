@@ -3,7 +3,7 @@
 module Blocks where
 
 import Types
-import Lens.Micro (Traversal', ix, over)
+import Lens.Micro (Traversal', ix, over, (.~), (&))
 
 shape0 :: Shape
 shape0 = Rect (0, 0) (400, 400)
@@ -30,8 +30,16 @@ blockEffect = \case
   LineCut b o l -> over (blockAt b) (lineCut o l)
   PointCut b p -> over (blockAt b) (pointCut p)
   Color b c -> id
-  Swap b0 b1 -> id
+  Swap b0 b1 -> swap b0 b1
   Merge b0 b1 -> \blocks -> blocks ++ [merge (lookupBlock b0 blocks) (lookupBlock b1 blocks)]
+
+-- >>> swap [0,0] [0,1] [lineCut X 100 block0]
+-- [ComplexBlock [SimpleBlock (Rect {bl = (100,0), tr = (400,400)}),SimpleBlock (Rect {bl = (0,0), tr = (100,400)})]]
+swap :: BlockId -> BlockId -> [Block] -> [Block]
+swap b0 b1 blocks =
+  let block0 = lookupBlock b0 blocks
+      block1 = lookupBlock b1 blocks
+  in blocks & blockAt b0 .~ block1 & blockAt b1 .~ block0
 
 -- >>> lookupBlock [0,1] [lineCut X 100 block0]
 -- SimpleBlock (Rect {bl = (100,0), tr = (400,400)})
