@@ -7,6 +7,7 @@ module Types (
 import Codec.Picture (PixelRGBA8(..), Image, imageHeight)
 import qualified Codec.Picture (pixelAt)
 import Data.Word (Word8)
+import Data.Map.Strict (Map)
 
 type BlockId = [Int]
 type Point = (Int, Int)
@@ -26,12 +27,10 @@ data ISLLine
   | Merge BlockId BlockId
   deriving (Show, Eq, Ord)
 
-data Shape = Rect { bl :: Point, tr :: Point }
+data Block = Rect { bl :: Point, tr :: Point }
   deriving (Show, Eq, Ord)
-data Block
-  = SimpleBlock Shape
-  | ComplexBlock [Block]
-  deriving (Show, Eq, Ord)
+
+type Blocks = (Int, Map BlockId Block)
 
 pixelAt :: Img -> Point -> RGBA
 pixelAt img (x, y) = Codec.Picture.pixelAt img x (imageHeight img - y - 1)

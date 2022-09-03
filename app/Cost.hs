@@ -10,8 +10,7 @@ import Codec.Picture (imageData)
 import Data.Foldable (foldl')
 
 size :: Block -> Int
-size (SimpleBlock (Rect (x0, y0) (x1, y1))) = (x1 - x0) * (y1 - y0)
-size _ = error "size called on destroyed block"
+size (Rect (x0, y0) (x1, y1)) = (x1 - x0) * (y1 - y0)
 
 baseCost :: ISLLine -> Int
 baseCost = \case
@@ -25,14 +24,14 @@ lineCost :: ISLLine -> Int -> Integer
 lineCost move blockSize = round (fromIntegral (baseCost move * size block0) / fromIntegral blockSize :: Double)
 
 cost :: ISL -> Integer
-cost = snd . foldl' f ([block0], 0)
+cost = snd . foldl' f (blocks0, 0)
   where
     f (blocks, c) move =
       ( blockEffect move blocks
       , c + lineCost move (targetSize move blocks)
       )
 
-targetSize :: ISLLine -> [Block] -> Int
+targetSize :: ISLLine -> Blocks -> Int
 targetSize isl blocks = case isl of
   LineCut b o l -> f b
   PointCut b p -> f b

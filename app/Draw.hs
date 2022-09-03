@@ -11,7 +11,7 @@ import Data.Functor (void)
 draw :: ISL -> IO Img
 draw isl =
   withMutableImage 400 400 (PixelRGBA8 255 255 255 255) $ \img ->
-    void $ foldlM (step img) [block0] isl
+    void $ foldlM (step img) blocks0 isl
   where
     step img blocks move = do
       drawOne move blocks img
@@ -19,8 +19,8 @@ draw isl =
     drawOne (Color b c) blocks img = color (lookupBlock b blocks) c img
     drawOne (Swap b0 b1) blocks img = swap (lookupBlock b0 blocks) (lookupBlock b1 blocks) img
     drawOne _ _ _ = pure ()
-    color (SimpleBlock (Rect (x0, y0) (x1, y1))) c img = fillRectangle img x0 (400 - y1) (x1 - 1) (399 - y0) c
-    swap (SimpleBlock (Rect (x0, y0) (x1, y1))) (SimpleBlock (Rect (tx, ty) _)) img =
+    color (Rect (x0, y0) (x1, y1)) c img = fillRectangle img x0 (400 - y1) (x1 - 1) (399 - y0) c
+    swap (Rect (x0, y0) (x1, y1)) (Rect (tx, ty) _) img =
       for_ [x0..x1-1] $ \x ->
         for_ [y0..y1-1] $ \y -> do
           let x' = x - x0 + tx

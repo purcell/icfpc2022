@@ -3,39 +3,47 @@
 module Blocks where
 
 import Types
-import Lens.Micro (Traversal', ix, over, (.~), (&))
-
-shape0 :: Shape
-shape0 = Rect (0, 0) (400, 400)
+import Lens.Micro (Traversal', ix, over, (.~), (&), _2, at)
+import Lens.Micro.GHC ()
+import qualified Data.Map.Strict as Map
 
 block0 :: Block
-block0 = SimpleBlock shape0
+block0 = Rect (0, 0) (400, 400)
 
--- >>> lookupBlock [0] [block0]
+blocks0 :: Blocks
+blocks0 = (1, Map.singleton [0] block0)
+
+-- >>> lookupBlock [0] blocks0
 -- SimpleBlock (Rect {bl = (0,0), tr = (400,400)})
-lookupBlock :: BlockId -> [Block] -> Block
-lookupBlock [] _ = error "unexpected empty block id"
-lookupBlock (i:blockId) bs = case (bs !! i, blockId) of
-  (block, []) -> block
-  (ComplexBlock bs, _) -> lookupBlock blockId bs
+lookupBlock :: BlockId -> Blocks -> Block
+lookupBlock id = (Map.! id) . snd
 
-blockAt :: BlockId -> Traversal' [Block] Block
-blockAt [i] f bs = ix i f bs
-blockAt (i:id) f bs = ix i f' bs
-  where
-    f' (ComplexBlock bs') = ComplexBlock <$> blockAt id f bs'
+blockAt :: BlockId -> Traversal' Blocks Block
+blockAt id = _2 . ix id
 
-blockEffect :: ISLLine -> [Block] -> [Block]
+destroy :: BlockId -> Blocks -> Blocks
+destroy id = (_2 . at id) .~ Nothing
+
+append :: Block -> Blocks -> Blocks
+append b (n, m) = (n + 1, Map.insert [n] b m)
+
+replace :: BlockId -> (Block -> [Block]) -> Blocks -> Blocks
+replace id f blocks =
+  destroy id
+  $ flip (foldr (\(i, b) -> over _2 (Map.insert (id ++ [i]) b))) (zip [0..] (f $ lookupBlock id blocks))
+  $ blocks
+
+blockEffect :: ISLLine -> Blocks -> Blocks
 blockEffect = \case
-  LineCut b o l -> over (blockAt b) (lineCut o l)
-  PointCut b p -> over (blockAt b) (pointCut p)
+  LineCut b o l -> replace b (lineCut o l)
+  PointCut b p -> replace b (pointCut p)
   Color b c -> id
   Swap b0 b1 -> swap b0 b1
-  Merge b0 b1 -> \blocks -> blocks ++ [merge (lookupBlock b0 blocks) (lookupBlock b1 blocks)]
+  Merge b0 b1 -> \blocks -> destroy b0 . destroy b1 . append (merge (lookupBlock b0 blocks) (lookupBlock b1 blocks)) $ blocks
 
 -- >>> swap [0,0] [0,1] [lineCut X 100 block0]
 -- [ComplexBlock [SimpleBlock (Rect {bl = (100,0), tr = (400,400)}),SimpleBlock (Rect {bl = (0,0), tr = (100,400)})]]
-swap :: BlockId -> BlockId -> [Block] -> [Block]
+swap :: BlockId -> BlockId -> Blocks -> Blocks
 swap b0 b1 blocks =
   let block0 = lookupBlock b0 blocks
       block1 = lookupBlock b1 blocks
@@ -43,37 +51,34 @@ swap b0 b1 blocks =
 
 -- >>> lookupBlock [0,1] [lineCut X 100 block0]
 -- SimpleBlock (Rect {bl = (100,0), tr = (400,400)})
-lineCut :: Orientation -> Int -> Block -> Block
-lineCut X x (SimpleBlock (Rect (x0, y0) (x1, y1))) =
-  ComplexBlock [SimpleBlock (Rect (x0, y0) (x, y1)), SimpleBlock (Rect (x, y0) (x1, y1))]
-lineCut Y y (SimpleBlock (Rect (x0, y0) (x1, y1))) =
-  ComplexBlock [SimpleBlock (Rect (x0, y0) (x1, y)), SimpleBlock (Rect (x0, y) (x1, y1))]
-lineCut _ _ (ComplexBlock _) = error "lineCut: unexpected complex block"
+lineCut :: Orientation -> Int -> Block -> [Block]
+lineCut X x (Rect (x0, y0) (x1, y1)) =
+  [Rect (x0, y0) (x, y1), Rect (x, y0) (x1, y1)]
+lineCut Y y (Rect (x0, y0) (x1, y1)) =
+  [Rect (x0, y0) (x1, y), Rect (x0, y) (x1, y1)]
 
 -- >>> lookupBlock [0,1] [pointCut (100, 200) block0]
 -- SimpleBlock (Rect {bl = (100,0), tr = (400,200)})
-pointCut :: Point -> Block -> Block
-pointCut (x, y) (SimpleBlock (Rect (x0, y0) (x1, y1))) =
-  ComplexBlock
-    [ SimpleBlock (Rect (x0, y0) (x, y))
-    , SimpleBlock (Rect (x, y0) (x1, y))
-    , SimpleBlock (Rect (x, y) (x1, y1))
-    , SimpleBlock (Rect (x0, y) (x, y1))
-    ]
-pointCut _ (ComplexBlock _) = error "pointCut: unexpected complex block"
+pointCut :: Point -> Block -> [Block]
+pointCut (x, y) (Rect (x0, y0) (x1, y1)) =
+  [ Rect (x0, y0) (x, y)
+  , Rect (x, y0) (x1, y)
+  , Rect (x, y) (x1, y1)
+  , Rect (x0, y) (x, y1)
+  ]
 
 merge :: Block -> Block -> Block
-merge (SimpleBlock (Rect (ax0, ay0) (ax1, ay1))) (SimpleBlock (Rect (bx0, by0) (bx1, by1))) =
+merge (Rect (ax0, ay0) (ax1, ay1)) (Rect (bx0, by0) (bx1, by1)) =
   if ax0 == bx0 && ax1 == bx1
     then if ay1 == by0
-      then SimpleBlock (Rect (ax0, ay0) (bx1, by1))
+      then Rect (ax0, ay0) (bx1, by1)
       else if ay0 == by1
-        then SimpleBlock (Rect (bx0, by0) (ax1, ay1))
+        then Rect (bx0, by0) (ax1, ay1)
         else error "merge: blocks do not share an edge"
     else if ay0 == by0 && ay1 == by1
       then if ax1 == bx0
-        then SimpleBlock (Rect (ax0, ay0) (bx1, by1))
+        then Rect (ax0, ay0) (bx1, by1)
         else if ax0 == bx1
-          then SimpleBlock (Rect (bx0, by0) (ax1, ay1))
+          then Rect (bx0, by0) (ax1, ay1)
           else error "merge: blocks do not share an edge"
       else error "merge: blocks do not share an edge"

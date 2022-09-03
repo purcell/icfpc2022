@@ -39,9 +39,11 @@ executable tweag-icfpc2022
     -- other-extensions:
     build-depends:
         base,
+        containers,
         JuicyPixels,
         juicy-draw,
         microlens,
+        microlens-ghc,
         vector,
 
     hs-source-dirs:   app
