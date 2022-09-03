@@ -17,7 +17,7 @@ import Data.Aeson (decodeFileStrict)
 import Blocks
 
 main :: IO ()
-main = for_ [1..25] $ \i -> do
+main = for_ [1..30] $ \i -> do
   layout <- loadLayout i
   img <- loadPng i
   let man = lookup i manually
