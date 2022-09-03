@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeApplications #-}
 module Main where
 
 import Codec.Picture (readImage, convertRGBA8, imagePixels, pixelAt, palettize, PaletteOptions (..), PaletteCreationMethod (..), PixelRGB8 (PixelRGB8), writePng)
@@ -33,19 +32,3 @@ save i score isl img = do
   writeFile ("solutions/" ++ show i ++ ".score") (show score)
   writeFile ("solutions/" ++ show i ++ ".isl") (serialize isl)
   writePng ("solutions/" ++ show i ++ ".png") img
-
-average :: Img -> RGBA
-average = avg . foldMapOf imagePixels (\(PixelRGBA8 r g b a) -> ((s r, s g, s b, s a), Sum 1))
-  where
-    s = Sum . toInteger
-    avg ((Sum r, Sum g, Sum b, Sum a), Sum n) = let f c = fromInteger (c `div` n) in
-      PixelRGBA8 (f r) (f g) (f b) (f a)
-
-average' :: Img -> RGBA
-average' img
-  = promotePixel
-  $ pixelAt (snd $ palettize (PaletteOptions MedianMeanCut False 1)
-  $ over imagePixels dropTransparency img) 0 0
-
-average'' :: Img -> RGBA
-average'' = Quads.average . Quads.fromImage

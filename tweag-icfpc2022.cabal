@@ -29,6 +29,7 @@ executable tweag-icfpc2022
         Blocks
         Cost
         Draw
+        ImageOps
         ISL
         Quads
         Types
