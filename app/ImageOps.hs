@@ -22,6 +22,6 @@ averageColour' img
   $ over imagePixels dropTransparency img) 0 0
 
 region :: Img -> Point -> Point -> Img
-region i (x0,y0) (x1,y1) = generateImage (\x y -> pixelAt i (x + x0) (y + y0)) (x1 - x0) (y1 - y0)
+region i (x0,y0) (x1,y1) = generateImage (\x y -> pixelAt i (x + x0) (399 - (y + y0))) (x1 - x0) (y1 - y0)
 
 

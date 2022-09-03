@@ -53,7 +53,7 @@ powOf2 :: Int -> Int
 powOf2 w = 2 ^ (floor (log (fromIntegral w :: Double) / log 2) :: Int)
 
 toISL :: BlockId -> Quad -> ISL
-toISL blockId q | length blockId > 3 = [Color blockId (averageColor q)]
+toISL blockId q | length blockId > 2 = [Color blockId (averageColor q)]
 toISL blockId (Quad{cutPoint,bl,br,tr,tl}) =
   [PointCut blockId cutPoint]
   ++ toISL (blockId ++ [0]) bl
