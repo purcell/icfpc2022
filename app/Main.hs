@@ -19,16 +19,18 @@ main = for_ [1..15] $ \i -> do
   img <- load i
   let prog = Quads.toISL [0] $ Quads.fromImage img
   img' <- draw prog
-  save i prog img'
-  putStr $ show i ++ " Cost: " ++ show (cost prog + similarity img img') ++ "\n" ++ serialize prog
+  let score = cost prog + similarity img img'
+  save i score prog img'
+  putStr $ show i ++ " Cost: " ++ show score ++ "\n" ++ serialize prog
 
 load :: Int -> IO Img
 load i = do
   res <- readImage ("problems/" ++ show i ++ ".png")
   either error (pure . convertRGBA8) res
 
-save :: Int -> ISL -> Img -> IO ()
-save i isl img = do
+save :: Int -> Integer -> ISL -> Img -> IO ()
+save i score isl img = do
+  writeFile ("solutions/" ++ show i ++ ".score") (show score)
   writeFile ("solutions/" ++ show i ++ ".isl") (serialize isl)
   writePng ("solutions/" ++ show i ++ ".png") img
 
