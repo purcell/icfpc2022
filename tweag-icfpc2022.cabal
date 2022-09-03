@@ -39,6 +39,7 @@ executable tweag-icfpc2022
     -- other-extensions:
     build-depends:
         base,
+        aeson,
         containers,
         JuicyPixels,
         juicy-draw,
