@@ -13,12 +13,15 @@ import ImageOps (averageColour, filledWith, imgSize)
 point_cut_cost :: Int
 point_cut_cost = 10
 
+line_cut_cost :: Int
+line_cut_cost = 7
+
 color_cost :: Int
 color_cost = 5
 
 baseCost :: ISLLine -> Int
 baseCost = \case
-  LineCut{} -> 7
+  LineCut{} -> line_cut_cost
   PointCut{} -> point_cut_cost
   Color{} -> color_cost
   Swap{} -> 3
@@ -57,8 +60,20 @@ similarity a b = round $ 0.005 * go 0 componentDiffs
     go total v = go (total + sqrt (V.sum (V.take 4 v))) (V.drop 4 v)
     componentDiffs = V.zipWith componentDifference (imageData a) (imageData b)
 
+colorDiff :: RGBA -> RGBA -> Double
+colorDiff (PixelRGBA8 r0 g0 b0 a0) (PixelRGBA8 r1 g1 b1 a1) =
+  sqrt (
+    componentDifference r0 r1 +
+    componentDifference g0 g1 +
+    componentDifference b0 b1 +
+    componentDifference a0 a1
+  )
+
 componentDifference :: Word8 -> Word8 -> Double
 componentDifference c c' = (fromIntegral c - fromIntegral c') ** 2
 
 similarityWithAverage :: Img -> Integer
-similarityWithAverage img = similarity img (filledWith img $ averageColour img)
+similarityWithAverage img = similarityWithSolidColor img (averageColour img)
+
+similarityWithSolidColor :: Img -> RGBA -> Integer
+similarityWithSolidColor img c = similarity img (filledWith img c)
