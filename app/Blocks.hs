@@ -57,6 +57,9 @@ blockEffect = \case
   Swap b0 b1 -> swapBlocks b0 b1
   Merge b0 b1 -> \blocks -> destroy b0 . destroy b1 . append (merge (lookupBlock b0 blocks) (lookupBlock b1 blocks)) $ blocks
 
+blockEffects :: ISL -> Blocks -> Blocks
+blockEffects isl blocks0 = foldl (flip blockEffect) blocks0 isl
+
 fillerImage :: Point -> Point -> RGBA -> Img
 fillerImage (x0, y0) (x1, y1) = flatColorImg (x1 - x0) (y1 - y0)
 

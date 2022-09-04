@@ -10,6 +10,7 @@ import ISL (serialize)
 import Draw (draw)
 import Manually (manually)
 import qualified Quads
+import qualified Swaps
 import Data.Aeson (decodeFileStrict)
 import Blocks
 import System.Environment (getArgs)
@@ -27,8 +28,10 @@ main = problemNumbersToSolve >>= \ns -> for_ ns $ \i -> do
   img <- loadPng i
   initialImg <- loadInitialPng i
   let man = lookup i manually
-  let startingBlocks = fromInitialLayout initialImg layout
-  let prog = fromMaybe (Quads.fromImage startingBlocks img) man
+      startingBlocks = fromInitialLayout initialImg layout
+      swapProg = Swaps.fromImage startingBlocks img layout
+      swappedStartingBlocks = blockEffects swapProg startingBlocks
+      prog = swapProg ++ fromMaybe (Quads.fromImage swappedStartingBlocks img) man
   img' <- draw (layoutW layout) (layoutW layout) startingBlocks prog
   let cScore = cost (layoutW layout) (layoutW layout) startingBlocks prog
   let sScore = similarity img img'

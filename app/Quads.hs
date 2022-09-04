@@ -8,7 +8,7 @@ import ImageOps
 import Cost
 import Data.Foldable (minimumBy)
 import Data.Function (on)
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import qualified Blocks
 import Debug.Trace
 

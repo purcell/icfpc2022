@@ -36,6 +36,7 @@ executable tweag-icfpc2022
         Quads
         -- Search
         -- Solver
+        Swaps
         Types
 
     -- LANGUAGE extensions used by modules in this package.
