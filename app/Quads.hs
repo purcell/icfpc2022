@@ -10,6 +10,7 @@ import Data.Foldable (minimumBy)
 import Data.Function (on)
 import qualified Data.Map as Map
 import qualified Blocks
+import Debug.Trace
 
 fromImage :: Blocks -> Img -> ISL
 fromImage blocks img
@@ -43,6 +44,5 @@ toISL img (blockId, block@(Rect (x0,y0) (x1,y1) bim)) =
       options =
         [ (fillCost, [Color blockId (averageColour blockImg)])
         , (doNothingCost, [])
-        ] ++ pointCutOptions
-  in if w < 50 || h < 50 then head options
-    else minimumBy (compare `on` fst) options
+        ] ++ if w < 50 || h < 50 then [] else pointCutOptions
+  in minimumBy (compare `on` fst) options
