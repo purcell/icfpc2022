@@ -3,9 +3,6 @@ module Main where
 import Codec.Picture (readImage, convertRGBA8, writePng)
 import Data.Foldable ( for_ )
 import Data.Maybe (fromMaybe, fromJust)
-import Data.Monoid (Sum(..))
-import Lens.Micro (over)
-import Lens.Micro.Internal (foldMapOf)
 
 import Types
 import Cost (cost, similarity)
@@ -30,7 +27,6 @@ main = problemNumbersToSolve >>= \ns -> for_ ns $ \i -> do
   img <- loadPng i
   let man = lookup i manually
   let prog = fromMaybe (Quads.fromImage img) man
-  -- let prog = [Color [0] (average img)]
   let startingBlocks = fromInitialLayout layout
   img' <- draw (layoutW layout) (layoutW layout) startingBlocks prog
   let cScore = cost startingBlocks prog

@@ -7,13 +7,15 @@ import Types
 import Lens.Micro (Traversal', ix, over, (.~), (&), _2, at)
 import Lens.Micro.GHC ()
 import qualified Data.Map.Strict as Map
-import Data.Foldable (fold)
 
 fromInitialLayout :: InitialLayout -> Blocks
 fromInitialLayout InitialLayout{layoutW,layoutH,layoutBlocks} =
   (length layoutBlocks,
    Map.fromList ((\(InitialBlock{iBlockBL,iBlockTR,iBlockID,iBlockColor}) ->
                    (iBlockID, Rect iBlockBL iBlockTR iBlockColor)) <$> layoutBlocks))
+
+toList :: Blocks -> [Block]
+toList (_, bs) = Map.elems bs
 
 -- >>> lookupBlock [0] blocks0
 -- SimpleBlock (Rect {bl = (0,0), tr = (400,400)})

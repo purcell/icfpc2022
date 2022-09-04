@@ -10,8 +10,8 @@ import Data.Functor (void)
 
 draw :: Int -> Int -> Blocks -> ISL -> IO Img
 draw w h blocks0 isl =
-  withMutableImage w h (PixelRGBA8 255 255 255 255) $ \img ->
-    -- TODO: draw the initial blocks
+  withMutableImage w h (PixelRGBA8 255 255 255 255) $ \img -> do
+    for_ (Blocks.toList blocks0) $ \b -> fill b (bcolor b) img
     void $ foldlM (step img) blocks0 isl
   where
     step img blocks move = do
