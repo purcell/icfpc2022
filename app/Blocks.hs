@@ -67,38 +67,40 @@ swapBlocks :: BlockId -> BlockId -> Blocks -> Blocks
 swapBlocks a b blocks =
   let blockA = lookupBlock a blocks
       blockB = lookupBlock b blocks
-  in blocks & blockAt a .~ blockB & blockAt b .~ blockA
+  in blocks & blockAt a .~ blockB { im = im blockA } & blockAt b .~ blockA { im = im blockB }
 
 -- >>> lookupBlock [0,1] [lineCut X 100 block0]
 -- SimpleBlock (Rect {bl = (100,0), tr = (400,400)})
 lineCut :: Orientation -> Int -> Block -> [Block]
 lineCut X x (Rect (x0, y0) (x1, y1) c) =
-  [Rect (x0, y0) (x, y1) c, Rect (x, y0) (x1, y1) c]
+  [ Rect (x0, y0) (x, y1) (region c (x0 - x0, y0 - y0) (x - x0, y1 - y0))
+  , Rect (x, y0) (x1, y1) (region c (x - x0, y0 - y0) (x1 - x0, y1 - y0))]
 lineCut Y y (Rect (x0, y0) (x1, y1) c) =
-  [Rect (x0, y0) (x1, y) c, Rect (x0, y) (x1, y1) c]
+  [ Rect (x0, y0) (x1, y) (region c (x0 - x0, y0 - y0) (x1 - x0, y - y0))
+  , Rect (x0, y) (x1, y1) (region c (x0 - x0, y - y0) (x1 - x0, y1 - y0))]
 
 -- >>> lookupBlock [0,1] [pointCut (100, 200) block0]
 -- SimpleBlock (Rect {bl = (100,0), tr = (400,200)})
 pointCut :: Point -> Block -> [Block]
 pointCut (x, y) (Rect (x0, y0) (x1, y1) c) =
-  [ Rect (x0, y0) (x, y) c
-  , Rect (x, y0) (x1, y) c
-  , Rect (x, y) (x1, y1) c
-  , Rect (x0, y) (x, y1) c
+  [ Rect (x0, y0) (x, y) (region c (x0 - x0, y0 - y0) (x - x0, y - y0))
+  , Rect (x, y0) (x1, y) (region c (x - x0, y0 - y0) (x1 - x0, y - y0))
+  , Rect (x, y) (x1, y1) (region c (x - x0, y - y0) (x1 - x0, y1 - y0))
+  , Rect (x0, y) (x, y1) (region c (x0 - x0, y - y0) (x - x0, y1 - y0))
   ]
 
 merge :: Block -> Block -> Block
-merge (Rect (ax0, ay0) (ax1, ay1) c1) (Rect (bx0, by0) (bx1, by1) c2) =
+merge (Rect (ax0, ay0) (ax1, ay1) ia) (Rect (bx0, by0) (bx1, by1) ib) =
   if ax0 == bx0 && ax1 == bx1
     then if ay1 == by0
-      then Rect (ax0, ay0) (bx1, by1) c2
+      then Rect (ax0, ay0) (bx1, by1) (ib `above` ia)
       else if ay0 == by1
-        then Rect (bx0, by0) (ax1, ay1) c2
+        then Rect (bx0, by0) (ax1, ay1) (ia `above` ib)
         else error "merge: blocks do not share an edge"
     else if ay0 == by0 && ay1 == by1
       then if ax1 == bx0
-        then Rect (ax0, ay0) (bx1, by1) c2
+        then Rect (ax0, ay0) (bx1, by1) (ia `nextTo` ib)
         else if ax0 == bx1
-          then Rect (bx0, by0) (ax1, ay1) c2
+          then Rect (bx0, by0) (ax1, ay1) (ib `nextTo` ia)
           else error "merge: blocks do not share an edge"
       else error "merge: blocks do not share an edge"

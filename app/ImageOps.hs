@@ -1,6 +1,7 @@
+{-# LANGUAGE FlexibleInstances #-}
 module ImageOps where
 
-import Codec.Picture (imagePixels, palettize, PaletteOptions (..), PaletteCreationMethod (..), generateImage, imageWidth, imageHeight, mixWith)
+import Codec.Picture (imagePixels, palettize, PaletteOptions (..), PaletteCreationMethod (..), imageWidth, imageHeight, mixWith)
 import qualified Codec.Picture
 import Codec.Picture.Types (promotePixel, dropTransparency, MutableImage, mutableImageHeight)
 import Control.Monad.Primitive (PrimState, PrimMonad)
@@ -26,14 +27,20 @@ avg2 :: RGBA -> RGBA -> RGBA
 avg2 = mixWith (\_ ca cb -> fromIntegral $ (fromIntegral ca + fromIntegral cb :: Int) `div` 2)
 
 region :: Img -> Point -> Point -> Img
-region i (x0,y0) (x1,y1) = generateImage (\x y -> pixelAt i (x + x0, y + y0)) (x1 - x0) (y1 - y0)
+region i p0@(x0,y0) (x1,y1) = generateImage (\p -> pixelAt i (p + p0)) (x1 - x0) (y1 - y0)
   where h = imageHeight i
 
 flatColorImg :: Int -> Int -> RGBA -> Img
-flatColorImg w h c = generateImage (\_ _ -> c) w h
+flatColorImg w h c = generateImage (\_ -> c) w h
 
 filledWith :: Img -> RGBA -> Img
-filledWith img colour = generateImage (\_ _ -> colour) (imageWidth img) (imageHeight img)
+filledWith img colour = generateImage (\_ -> colour) (imageWidth img) (imageHeight img)
+
+above :: Img -> Img -> Img
+above a b = let hb = imageHeight b in generateImage (\(x, y) -> if y >= hb then pixelAt a (x, y - hb) else pixelAt b (x, y)) (imageWidth b) (hb + imageHeight a)
+
+nextTo :: Img -> Img -> Img
+nextTo a b = let wa = imageWidth a in generateImage (\(x, y) -> if x >= wa then pixelAt b (x - wa, y) else pixelAt a (x, y)) (wa + imageWidth b) (imageHeight b)
 
 imgSize :: Img -> Int
 imgSize img = imageHeight img * imageWidth img
@@ -57,3 +64,14 @@ pixelAt img (x, y) = Codec.Picture.pixelAt img x (imageHeight img - 1 - y)
 
 writePixel :: PrimMonad m => MutableImage (PrimState m) RGBA -> Point -> RGBA -> m ()
 writePixel img (x, y) c = Codec.Picture.writePixel img x (mutableImageHeight img - 1 - y) c
+
+generateImage :: (Point -> RGBA) -> Int -> Int -> Img
+generateImage f w h = Codec.Picture.generateImage (\x y -> f (x, h - 1 - y)) w h
+
+instance Num (Int, Int) where
+  (a, b) + (c, d) = (a + c, b + d)
+  (a, b) - (c, d) = (a - c, b - d)
+  (*) = undefined
+  abs = undefined
+  signum = undefined
+  fromInteger = undefined
