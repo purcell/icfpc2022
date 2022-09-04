@@ -46,6 +46,7 @@ executable tweag-icfpc2022
         juicy-draw,
         microlens,
         microlens-ghc,
+        primitive,
         vector,
 
     hs-source-dirs:   app

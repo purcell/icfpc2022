@@ -65,8 +65,3 @@ instance FromJSON InitialBlock where
 instance FromJSON InitialLayout where
   parseJSON = withObject "BlockMap" $
     \o -> InitialLayout <$> o .: "width" <*> o .: "height" <*> o .: "blocks"
-
-----------------------------------------------------------------------
-
-pixelAt :: Img -> Point -> RGBA
-pixelAt img (x, y) = Codec.Picture.pixelAt img x (imageHeight img - y - 1)
