@@ -12,6 +12,7 @@ import Data.Word (Word8)
 import Data.Map.Strict (Map)
 import Data.Aeson
 import Data.List (singleton)
+import Control.Applicative ((<|>))
 
 type BlockId = [Int]
 type Point = (Int, Int)
@@ -44,7 +45,8 @@ type Blocks = (Int, Map BlockId Block)
 data InitialBlock = InitialBlock { iBlockBL :: Point
                                  , iBlockTR :: Point
                                  , iBlockID :: BlockId
-                                 , iBlockColor :: RGBA }
+                                 , iBlockContents :: Either RGBA Point
+                                 }
   deriving (Show, Eq, Ord)
 
 data InitialLayout = InitialLayout { layoutW :: Int
@@ -60,7 +62,7 @@ instance FromJSON PixelRGBA8 where
 
 instance FromJSON InitialBlock where
   parseJSON = withObject "Block" $
-    \o -> InitialBlock <$> o .: "bottomLeft" <*> o .: "topRight" <*> (singleton . read <$> o .: "blockId") <*> o .: "color"
+    \o -> InitialBlock <$> o .: "bottomLeft" <*> o .: "topRight" <*> (singleton . read <$> o .: "blockId") <*> (Left <$> o .: "color" <|> Right <$> o .: "pngBottomLeftPoint")
 
 instance FromJSON InitialLayout where
   parseJSON = withObject "BlockMap" $

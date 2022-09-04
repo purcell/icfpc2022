@@ -25,8 +25,9 @@ main :: IO ()
 main = problemNumbersToSolve >>= \ns -> for_ ns $ \i -> do
   layout <- loadLayout i
   img <- loadPng i
+  initialImg <- loadInitialPng i
   let man = lookup i manually
-  let startingBlocks = fromInitialLayout layout
+  let startingBlocks = fromInitialLayout initialImg layout
   let prog = fromMaybe (Quads.fromImage startingBlocks img) man
   img' <- draw (layoutW layout) (layoutW layout) startingBlocks prog
   let cScore = cost startingBlocks prog
@@ -40,6 +41,11 @@ loadLayout i = fromJust <$> decodeFileStrict ("problems/" ++ show i ++ ".json")
 loadPng :: Int -> IO Img
 loadPng i = do
   res <- readImage ("problems/" ++ show i ++ ".png")
+  either error (pure . convertRGBA8) res
+
+loadInitialPng :: Int -> IO Img
+loadInitialPng i = do
+  res <- readImage ("problems/" ++ show i ++ ".initial.png")
   either error (pure . convertRGBA8) res
 
 save :: Int -> Integer -> Integer -> ISL -> Img -> IO ()
