@@ -8,12 +8,13 @@ import Lens.Micro (Traversal', ix, over, (.~), (&), _2, at)
 import Lens.Micro.GHC ()
 import qualified Data.Map.Strict as Map
 import ImageOps
+import Data.Maybe (fromJust)
 
-fromInitialLayout :: Img -> InitialLayout -> Blocks
+fromInitialLayout :: Maybe Img -> InitialLayout -> Blocks
 fromInitialLayout initialImg InitialLayout{layoutW,layoutH,layoutBlocks} =
   (length layoutBlocks,
    Map.fromList ((\(InitialBlock{iBlockBL,iBlockTR,iBlockID,iBlockContents}) ->
-      let img = either (fillerImage iBlockBL iBlockTR) (\bl -> region initialImg bl (bl + iBlockTR - iBlockBL)) iBlockContents
+      let img = either (fillerImage iBlockBL iBlockTR) (\bl -> region (fromJust initialImg) bl (bl + iBlockTR - iBlockBL)) iBlockContents
       in (iBlockID, Rect iBlockBL iBlockTR img)) <$> layoutBlocks))
 
 toList :: Blocks -> [Block]

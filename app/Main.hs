@@ -43,10 +43,10 @@ loadPng i = do
   res <- readImage ("problems/" ++ show i ++ ".png")
   either error (pure . convertRGBA8) res
 
-loadInitialPng :: Int -> IO Img
+loadInitialPng :: Int -> IO (Maybe Img)
 loadInitialPng i = do
   res <- readImage ("problems/" ++ show i ++ ".initial.png")
-  either error (pure . convertRGBA8) res
+  either (pure . const Nothing) (pure . Just . convertRGBA8) res
 
 save :: Int -> Integer -> Integer -> ISL -> Img -> IO ()
 save i cScore sScore isl img = do
