@@ -8,9 +8,14 @@ import ImageOps
 import Cost
 import Data.Foldable (minimumBy)
 import Data.Function (on)
+import qualified Data.Map as Map
 
-fromImage :: Img -> ISL
-fromImage img = snd $ toISL img (0, 0) (imageWidth img, imageHeight img) [0]
+fromImage :: Img -> Blocks -> ISL
+fromImage img blocks
+  = concat
+  $ map (\(bid, Rect a b _) -> snd $ toISL img a b bid)
+  $ Map.toList
+  $ snd blocks
 
 powOf2 :: Int -> Int
 powOf2 w = 2 ^ (floor (log (fromIntegral w :: Double) / log 2) :: Int)

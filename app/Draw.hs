@@ -23,7 +23,7 @@ draw w h blocks0 isl =
     drawOne (PointCut _ _) _ _ = pure ()
     drawOne (Merge _ _) _ _ = pure ()
     fill (Rect (x0, y0) (x1, y1) _) c img = fillRectangle img x0 (h - y1) (x1 - 1) (h - 1 - y0) c
-    swap (Rect (x0, y0) (x1, y1) c1) (Rect (tx, ty) _ c2) img =
+    swap (Rect (x0, y0) (x1, y1) _) (Rect (tx, ty) _ _) img =
       for_ [x0..x1-1] $ \x ->
         for_ [y0..y1-1] $ \y -> do
           let x' = x - x0 + tx
