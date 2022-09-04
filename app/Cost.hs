@@ -76,4 +76,10 @@ similarityWithAverage :: Img -> Integer
 similarityWithAverage img = similarityWithSolidColor img (averageColour img)
 
 similarityWithSolidColor :: Img -> RGBA -> Integer
-similarityWithSolidColor img c = similarity img (filledWith img c)
+similarityWithSolidColor img (PixelRGBA8 r g b a) =
+ round $ 0.005 * go 0 (imageData img)
+  where
+    cvec = V.fromList [r, g, b, a]
+    go total v | V.length v == 0 = total
+    go total v = go (total + sqrt (V.sum (diffs (V.take 4 v)))) (V.drop 4 v)
+    diffs = V.zipWith componentDifference cvec
