@@ -8,14 +8,12 @@ import Codec.Picture.Drawing (fillRectangle, withMutableImage)
 import Data.Foldable (foldlM, for_)
 import Data.Functor (void)
 
-draw :: Blocks -> ISL -> IO Img
-draw blocks0 isl =
+draw :: Int -> Int -> Blocks -> ISL -> IO Img
+draw w h blocks0 isl =
   withMutableImage w h (PixelRGBA8 255 255 255 255) $ \img ->
+    -- TODO: draw the initial blocks
     void $ foldlM (step img) blocks0 isl
   where
-    w = blockWidth block0
-    h = blockHeight block0
-    block0 = lookupBlock [0] blocks0
     step img blocks move = do
       drawOne move blocks img
       pure $ blockEffect move blocks

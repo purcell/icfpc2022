@@ -32,7 +32,7 @@ main = problemNumbersToSolve >>= \ns -> for_ ns $ \i -> do
   let prog = fromMaybe (Quads.fromImage img) man
   -- let prog = [Color [0] (average img)]
   let startingBlocks = fromInitialLayout layout
-  img' <- draw startingBlocks prog
+  img' <- draw (layoutW layout) (layoutW layout) startingBlocks prog
   let cScore = cost startingBlocks prog
   let sScore = similarity img img'
   save i cScore sScore prog img'
