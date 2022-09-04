@@ -27,20 +27,19 @@ baseCost = \case
   Swap{} -> 3
   Merge{} -> 1
 
-lineCost :: Block -> ISLLine -> Int -> Integer
-lineCost block0 move targetSize = round (fromIntegral (baseCost move * blockArea block0) / fromIntegral targetSize :: Double)
+lineCost :: Int -> ISLLine -> Int -> Integer
+lineCost canvasSize move targetSize = round (fromIntegral (baseCost move * canvasSize) / fromIntegral targetSize :: Double)
 
 imgLineCost :: Img -> Img -> Int -> Integer
 imgLineCost whole region base = round (fromIntegral (base * imgSize whole) / fromIntegral (imgSize region) :: Double)
 
-cost :: Blocks -> ISL -> Integer
-cost initialBlocks = snd . foldl' f (initialBlocks, 0)
+cost :: Int -> Int -> Blocks -> ISL -> Integer
+cost w h initialBlocks = snd . foldl' f (initialBlocks, 0)
   where
-    -- TODO: might we ever remove block0??
-    block0 = lookupBlock [0] initialBlocks
+    canvasSize = w * h
     f (blocks, c) move =
       ( blockEffect move blocks
-      , c + lineCost block0 move (targetSize move blocks)
+      , c + lineCost canvasSize move (targetSize move blocks)
       )
 
 targetSize :: ISLLine -> Blocks -> Int

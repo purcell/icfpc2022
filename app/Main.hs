@@ -30,7 +30,7 @@ main = problemNumbersToSolve >>= \ns -> for_ ns $ \i -> do
   let startingBlocks = fromInitialLayout initialImg layout
   let prog = fromMaybe (Quads.fromImage startingBlocks img) man
   img' <- draw (layoutW layout) (layoutW layout) startingBlocks prog
-  let cScore = cost startingBlocks prog
+  let cScore = cost (layoutW layout) (layoutW layout) startingBlocks prog
   let sScore = similarity img img'
   save i cScore sScore prog img'
   putStr $ show i ++ " Cost: " ++ show (cScore + sScore, cScore, sScore) ++ "\n" -- ++ serialize prog
