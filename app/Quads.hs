@@ -10,8 +10,8 @@ import Data.Foldable (minimumBy)
 import Data.Function (on)
 import qualified Data.Map as Map
 
-fromImage :: Img -> Blocks -> ISL
-fromImage img blocks
+fromImage :: Blocks -> Img -> ISL
+fromImage blocks img
   = concat
   $ map (\(bid, Rect a b _) -> snd $ toISL img a b bid)
   $ Map.toList

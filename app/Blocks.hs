@@ -7,12 +7,13 @@ import Types
 import Lens.Micro (Traversal', ix, over, (.~), (&), _2, at)
 import Lens.Micro.GHC ()
 import qualified Data.Map.Strict as Map
+import ImageOps
 
 fromInitialLayout :: InitialLayout -> Blocks
 fromInitialLayout InitialLayout{layoutW,layoutH,layoutBlocks} =
   (length layoutBlocks,
    Map.fromList ((\(InitialBlock{iBlockBL,iBlockTR,iBlockID,iBlockColor}) ->
-                   (iBlockID, Rect iBlockBL iBlockTR iBlockColor)) <$> layoutBlocks))
+                   (iBlockID, Rect iBlockBL iBlockTR (fillerImage iBlockBL iBlockTR iBlockColor))) <$> layoutBlocks))
 
 toList :: Blocks -> [Block]
 toList (_, bs) = Map.elems bs
@@ -50,9 +51,15 @@ blockEffect :: ISLLine -> Blocks -> Blocks
 blockEffect = \case
   LineCut b o l -> replace b (lineCut o l)
   PointCut b p -> replace b (pointCut p)
-  Color b c -> over _2 (Map.update (\r -> Just (r { bcolor = c }) ) b)
+  Color b c -> over _2 (Map.update (Just . colorise c) b)
   Swap b0 b1 -> swapBlocks b0 b1
   Merge b0 b1 -> \blocks -> destroy b0 . destroy b1 . append (merge (lookupBlock b0 blocks) (lookupBlock b1 blocks)) $ blocks
+
+fillerImage :: Point -> Point -> RGBA -> Img
+fillerImage (x0, y0) (x1, y1) = flatColorImg (x1 - x0) (y1 - y0)
+
+colorise :: RGBA -> Block -> Block
+colorise c r = r { im = fillerImage (bl r) (tr r) c }
 
 -- >>> swap [0,0] [0,1] [lineCut X 100 block0]
 -- [ComplexBlock [SimpleBlock (Rect {bl = (100,0), tr = (400,400)}),SimpleBlock (Rect {bl = (0,0), tr = (100,400)})]]
@@ -79,9 +86,6 @@ pointCut (x, y) (Rect (x0, y0) (x1, y1) c) =
   , Rect (x, y) (x1, y1) c
   , Rect (x0, y) (x, y1) c
   ]
-
-color :: RGBA -> Block -> [Block]
-color c r = [r { bcolor = c }]
 
 merge :: Block -> Block -> Block
 merge (Rect (ax0, ay0) (ax1, ay1) c1) (Rect (bx0, by0) (bx1, by1) c2) =

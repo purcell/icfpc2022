@@ -27,6 +27,9 @@ region :: Img -> Point -> Point -> Img
 region i (x0,y0) (x1,y1) = generateImage (\x y -> pixelAt i (x + x0) (h - 1 - (y + y0))) (x1 - x0) (y1 - y0)
   where h = imageHeight i
 
+flatColorImg :: Int -> Int -> RGBA -> Img
+flatColorImg w h c = generateImage (\_ _ -> c) w h
+
 filledWith :: Img -> RGBA -> Img
 filledWith img colour = generateImage (\_ _ -> colour) (imageWidth img) (imageHeight img)
 
@@ -46,3 +49,11 @@ averageRegionColour img (x0,y0) (x1,y1) =
   where
     avg (C r g b n) = let f c = fromIntegral (c `div` n) in
       PixelRGBA8 (f r) (f g) (f b) 255
+
+blit :: Img -> Point -> Point -> Img -> Img
+blit bg (x0, y0) (x1, y1) ov = generateImage blitter (imageWidth bg) (imageHeight bg)
+  where
+    ymax = imageHeight bg - 1
+    -- TODO maths is all wrong here
+    blitter x y | x >= x0 && x < x1 && y <= ymax - y0 && y < ymax - y1 = pixelAt ov (x - x0) (ymax -  y)
+    blitter x y = pixelAt bg x y

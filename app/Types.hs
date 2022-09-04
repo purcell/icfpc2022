@@ -31,8 +31,11 @@ data ISLLine
   | Merge BlockId BlockId
   deriving (Show, Eq, Ord)
 
-data Block = Rect { bl :: Point, tr :: Point, bcolor :: RGBA }
-  deriving (Show, Eq, Ord)
+data Block = Rect { bl :: Point, tr :: Point, im :: Img }
+  deriving (Eq)
+
+instance Show Block where
+  show b = "Rect { bl = " ++ show (bl b) ++ ", tr = " ++ show (tr b) ++ " }"
 
 type Blocks = (Int, Map BlockId Block)
 

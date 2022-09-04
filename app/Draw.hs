@@ -1,34 +1,14 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Draw where
 
 import Blocks
 import Types
-import Codec.Picture.Types (writePixel, readPixel)
-import Codec.Picture.Drawing (fillRectangle, withMutableImage)
-import Data.Foldable (foldlM, for_)
-import Data.Functor (void)
+import ImageOps
 
-draw :: Int -> Int -> Blocks -> ISL -> IO Img
+draw :: Int -> Int -> Blocks -> ISL -> Img
 draw w h blocks0 isl =
-  withMutableImage w h (PixelRGBA8 255 255 255 255) $ \img -> do
-    for_ (Blocks.toList blocks0) $ \b -> fill b (bcolor b) img
-    void $ foldlM (step img) blocks0 isl
-  where
-    step img blocks move = do
-      drawOne move blocks img
-      pure $ blockEffect move blocks
-    drawOne (Color b c) blocks img = fill (lookupBlock b blocks) c img
-    drawOne (Swap b0 b1) blocks img = swap (lookupBlock b0 blocks) (lookupBlock b1 blocks) img
-    drawOne (LineCut _ _ _) _ _ = pure ()
-    drawOne (PointCut _ _) _ _ = pure ()
-    drawOne (Merge _ _) _ _ = pure ()
-    fill (Rect (x0, y0) (x1, y1) _) c img = fillRectangle img x0 (h - y1) (x1 - 1) (h - 1 - y0) c
-    swap (Rect (x0, y0) (x1, y1) _) (Rect (tx, ty) _ _) img =
-      for_ [x0..x1-1] $ \x ->
-        for_ [y0..y1-1] $ \y -> do
-          let x' = x - x0 + tx
-              y' = y - y0 + ty
-          px <- readPixel img x (h - 1 - y)
-          px' <- readPixel img x' (h - 1 - y')
-          writePixel img x (h - 1 - y) px'
-          writePixel img x' (h - 1 - y') px
+  let
+    bg = flatColorImg w h (PixelRGBA8 255 255 255 255)
+    blocks' :: Blocks = foldl (flip blockEffect) blocks0 isl
+  in
+    foldl (\im (Rect bl tr i) -> blit im bl tr i) bg (Blocks.toList blocks')

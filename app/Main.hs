@@ -27,8 +27,8 @@ main = problemNumbersToSolve >>= \ns -> for_ ns $ \i -> do
   img <- loadPng i
   let man = lookup i manually
   let startingBlocks = fromInitialLayout layout
-  let prog = fromMaybe (Quads.fromImage img startingBlocks) man
-  img' <- draw (layoutW layout) (layoutW layout) startingBlocks prog
+  let prog = fromMaybe (Quads.fromImage startingBlocks img) man
+  let img' = draw (layoutW layout) (layoutW layout) startingBlocks prog
   let cScore = cost startingBlocks prog
   let sScore = similarity img img'
   save i cScore sScore prog img'
