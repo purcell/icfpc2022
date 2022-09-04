@@ -48,6 +48,7 @@ executable tweag-icfpc2022
         juicy-draw,
         microlens,
         microlens-ghc,
+        mtl,
         primitive,
         vector,
 
