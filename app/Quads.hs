@@ -11,38 +11,65 @@ import Data.Function (on)
 import qualified Data.Map.Strict as Map
 import qualified Blocks
 import Debug.Trace
+import Data.List (sortOn)
 
 fromImage :: Blocks -> Img -> ISL
 fromImage blocks img
   = concat
-  $ map (\bb -> snd $ toISL img bb)
+  $ map (\bb -> snd $ toISL img (edges img) bb)
   $ Map.toList
   $ snd blocks
 
-powOf2 :: Int -> Int
-powOf2 w = 2 ^ (floor (log (fromIntegral w :: Double) / log 2) :: Int)
-
-toISL :: Img -> (BlockId, Block) -> (Integer, ISL)
-toISL img (blockId, block@(Rect (x0,y0) (x1,y1) bim)) =
+toISL :: Img -> Edges -> (BlockId, Block) -> (Integer, ISL)
+toISL img edges (blockId, block@(Rect (x0,y0) (x1,y1) bim)) =
   let w = x1 - x0
       h = y1 - y0
+      edgeXs = take 2 $ (filter (\x -> x > x0 + w `div` 5 && x < x1 - w `div` 5) $ fst edges) ++ [x0 + w `div` 3, x0 + 2 * w `div` 3]
+      edgeYs = take 2 $ (filter (\y -> y > y0 + h `div` 5 && y < y1 - h `div` 5) $ snd edges) ++ [y0 + h `div` 3, y0 + 2 * h `div` 3]
       blockImg = region img (x0, y0) (x1, y1)
       fillCost = similarityWithAverage blockImg + imgLineCost img blockImg color_cost
+      pointCutBaseCost = imgLineCost img blockImg point_cut_cost
+      lineCutBaseCost = imgLineCost img blockImg line_cut_cost
       doNothingCost = similarity blockImg bim
-      pointCutOptions = [
-        let x = x0 + xi * w `div` 3
-            y = y0 + yi * h `div` 3
-            pcBlocks = Blocks.pointCut (x, y) block
-            (blCost, blCode) = toISL img (blockId ++ [0], pcBlocks !! 0)
-            (brCost, brCode) = toISL img (blockId ++ [1], pcBlocks !! 1)
-            (trCost, trCode) = toISL img (blockId ++ [2], pcBlocks !! 2)
-            (tlCost, tlCode) = toISL img (blockId ++ [3], pcBlocks !! 3)
-            pointCutCost = imgLineCost img blockImg point_cut_cost + blCost + brCost + trCost + tlCost
-        in (pointCutCost, PointCut blockId (x, y) : blCode ++ brCode ++ trCode ++ tlCode)
-        | xi <- [1..2], yi <- [1..2]
-        ]
       options =
         [ (fillCost, [Color blockId (averageColour blockImg)])
         , (doNothingCost, [])
-        ] ++ if w < 50 || h < 50 then [] else pointCutOptions
+        ] ++ [
+        let pcBlocks = Blocks.pointCut (x, y) block
+            (blCost, blCode) = toISL img edges (blockId ++ [0], pcBlocks !! 0)
+            (brCost, brCode) = toISL img edges (blockId ++ [1], pcBlocks !! 1)
+            (trCost, trCode) = toISL img edges (blockId ++ [2], pcBlocks !! 2)
+            (tlCost, tlCode) = toISL img edges (blockId ++ [3], pcBlocks !! 3)
+            cutCost = pointCutBaseCost + blCost + brCost + trCost + tlCost
+        in (cutCost, PointCut blockId (x, y) : blCode ++ brCode ++ trCode ++ tlCode)
+        | w > 40, h > 40, x <- edgeXs, y <- edgeYs
+        ] ++ [
+        let pcBlocks = Blocks.lineCut X x block
+            (lCost, lCode) = toISL img edges (blockId ++ [0], pcBlocks !! 0)
+            (rCost, rCode) = toISL img edges (blockId ++ [1], pcBlocks !! 1)
+            cutCost = lineCutBaseCost + lCost + rCost
+        in (cutCost, LineCut blockId X x : lCode ++ rCode)
+        | w > 40, null edgeYs, x <- edgeXs
+        ] ++ [
+        let pcBlocks = Blocks.lineCut Y y block
+            (bCost, bCode) = toISL img edges (blockId ++ [0], pcBlocks !! 0)
+            (tCost, tCode) = toISL img edges (blockId ++ [1], pcBlocks !! 1)
+            cutCost = pointCutBaseCost + bCost + tCost
+        in (cutCost, LineCut blockId Y y : bCode ++ tCode)
+        | h > 40, null edgeXs, y <- edgeYs
+        ]
   in minimumBy (compare `on` fst) options
+
+type Edges = ([Int], [Int])
+
+edges :: Img -> Edges
+edges img =
+  ( bestEdges $ map (\x -> (x, - diffSum img [((x, y), (x + 1, y)) | y <- [0..imageHeight img - 1]])) [0..imageWidth img - 2]
+  , bestEdges $ map (\y -> (y, - diffSum img [((x, y), (x, y + 1)) | x <- [0..imageWidth img - 1]])) [0..imageHeight img - 2]
+  )
+
+bestEdges :: [(Int, Double)] -> [Int]
+bestEdges = map fst . sortOn snd . filter ((< -10000) . snd)
+
+diffSum :: Img -> [(Point, Point)] -> Double
+diffSum img = sum . map (\(p0, p1) -> colorDiff (pixelAt img p0) (pixelAt img p1))
