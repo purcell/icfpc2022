@@ -24,7 +24,8 @@ avg2 :: RGBA -> RGBA -> RGBA
 avg2 = mixWith (\_ ca cb -> fromIntegral $ (fromIntegral ca + fromIntegral cb :: Int) `div` 2)
 
 region :: Img -> Point -> Point -> Img
-region i (x0,y0) (x1,y1) = generateImage (\x y -> pixelAt i (x + x0) (399 - (y + y0))) (x1 - x0) (y1 - y0)
+region i (x0,y0) (x1,y1) = generateImage (\x y -> pixelAt i (x + x0) (h - 1 - (y + y0))) (x1 - x0) (y1 - y0)
+  where h = imageHeight i
 
 filledWith :: Img -> RGBA -> Img
 filledWith img colour = generateImage (\_ _ -> colour) (imageWidth img) (imageHeight img)
