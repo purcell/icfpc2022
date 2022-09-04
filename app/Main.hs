@@ -21,7 +21,7 @@ problemNumbersToSolve :: IO [Int]
 problemNumbersToSolve = do
   ns <- fmap read <$> getArgs
   pure $ case ns of
-    [] -> [1..30] -- TODO: look in solutions dir
+    [] -> [1..36] -- TODO: look in solutions dir
     _ -> ns
 
 main :: IO ()
