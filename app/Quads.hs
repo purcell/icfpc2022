@@ -64,8 +64,8 @@ type Edges = ([Int], [Int])
 
 edges :: Img -> Edges
 edges img =
-  ( bestEdges $ map (\x -> (x, - diffSum img [((x, y), (x + 1, y)) | y <- [0..imageHeight img - 1]])) [0..imageWidth img - 2]
-  , bestEdges $ map (\y -> (y, - diffSum img [((x, y), (x, y + 1)) | x <- [0..imageWidth img - 1]])) [0..imageHeight img - 2]
+  ( bestEdges $ map (\x -> (x + 1, - diffSum img [((x, y), (x + 1, y)) | y <- [0..imageHeight img - 1]])) [0..imageWidth img - 2]
+  , bestEdges $ map (\y -> (y + 1, - diffSum img [((x, y), (x, y + 1)) | x <- [0..imageWidth img - 1]])) [0..imageHeight img - 2]
   )
 
 bestEdges :: [(Int, Double)] -> [Int]
