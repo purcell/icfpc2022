@@ -64,12 +64,21 @@ type Edges = ([Int], [Int])
 
 edges :: Img -> Edges
 edges img =
-  ( bestEdges $ map (\x -> (x + 1, - diffSum img [((x, y), (x + 1, y)) | y <- [0..imageHeight img - 1]])) [0..imageWidth img - 2]
-  , bestEdges $ map (\y -> (y + 1, - diffSum img [((x, y), (x, y + 1)) | x <- [0..imageWidth img - 1]])) [0..imageHeight img - 2]
+  ( bestEdges $ map (\x -> (x + 3, - diffSum img [((x, y), (x + 5, y)) | y <- [0..imageHeight img - 1]])) [0..imageWidth img - 6]
+  , bestEdges $ map (\y -> (y + 3, - diffSum img [((x, y), (x, y + 5)) | x <- [0..imageWidth img - 1]])) [0..imageHeight img - 6]
   )
 
 bestEdges :: [(Int, Double)] -> [Int]
-bestEdges = map fst . sortOn snd . filter ((< -10000) . snd)
+bestEdges = map fst . sortOn snd . pickMiddle . groupCont . filter ((< -10000) . snd)
+
+groupCont :: [(Int, Double)] -> [[(Int, Double)]]
+groupCont [] = []
+groupCont ((a,b):abs) = case groupCont abs of
+  [] -> [[(a, b)]]
+  abs':abbs -> if fst (head abs') - a == 1 then ((a, b):abs'):abbs else [(a, b)]:abs':abbs
+
+pickMiddle :: [[(Int, Double)]] -> [(Int, Double)]
+pickMiddle = map (\l -> l !! (length l `div` 2))
 
 diffSum :: Img -> [(Point, Point)] -> Double
 diffSum img = sum . map (\(p0, p1) -> colorDiff (pixelAt img p0) (pixelAt img p1))
